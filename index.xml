@@ -6,20 +6,23 @@
 &lt;ul>
 &lt;li>
 &lt;p>从 Hugo GitHub 仓库选择合适版本的下载，从下图中所指示位置即可进入下载页面&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_download_1.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041422942.png"
 loading="lazy"
+alt="image-20241204142246453"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>选择与你机器对应的版本（我这里选择 0.139.3 版本，windows 系统，对应文件为 hugo_extended_withdeploy_0.139.3_windows-amd64.zip）&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_download_2.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041424519.png"
 loading="lazy"
+alt="image-20241204142409072"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>将下载好的文件解压缩，在命令行敲击 &lt;strong>hugo version&lt;/strong>，看到如下结果则表示安装成功。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_download_3.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041424936.png"
 loading="lazy"
+alt="image-20241204142449688"
 >&lt;/p>
 &lt;/li>
 &lt;/ul>
@@ -36,14 +39,16 @@ loading="lazy"
 &lt;/h2>&lt;ul>
 &lt;li>
 &lt;p>使用 Hugo（建议将其加入环境变量） 创建你的站点，在命令行中输入 &lt;strong>hugo new site sitename&lt;/strong>。出现下图所示，则表明创建好了站点，按照这上面的步骤来即可。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_create_1.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041425244.png"
 loading="lazy"
+alt="image-20241204142517147"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>进入你的站点文件夹，可以看到 Hugo 创建了以下文件&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_create_2.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041425109.png"
 loading="lazy"
+alt="image-20241204142549989"
 >&lt;/p>
 &lt;p>&lt;code>archetypes&lt;/code> 目录包含用于新内容的模板。&lt;/p>
 &lt;p>&lt;code>assets&lt;/code> 目录包含通常通过资源管道传递的全局资源。包括图片、CSS、Sass、JavaScript 等。&lt;/p>
@@ -67,16 +72,18 @@ loading="lazy"
 &lt;p>将 themes\hugo-theme-stack\exampleSite 目录下的 content 文件夹和 hugo.yaml 复制到站点根目录（也就是你上面创建的那个文件夹下，我这里是 myblog），并且删除 hugo.toml 文件。&lt;/p>
 &lt;p>NOTE：需要删除 content\post\rich-content ，该文件夹内存放的资源访问不了，会导致 Hugo 无法启动）&lt;/p>
 &lt;p>使用命令：hugo server -D 启动网站，可以发现站点多了两个文件夹。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_create_4.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041426519.png"
 loading="lazy"
+alt="image-20241204142633162"
 >&lt;/p>
 &lt;p>&lt;code>public&lt;/code> 目录包含发布的网站，在运行 &lt;code>hugo&lt;/code> 命令时生成。Hugo 根据需要重建此目录及其内容。&lt;/p>
 &lt;p>&lt;code>resources&lt;/code> 目录包含 Hugo 资源管道的缓存输出，在运行 &lt;code>hugo&lt;/code> 或 &lt;code>hugo server&lt;/code> 命令时生成。默认情况下，此缓存目录包括 CSS 和图片。Hugo 根据需要重建此目录及其内容。&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>访问 http://localhost:1313/，看到如下结果表示你的博客已经在本地搭建好了&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5chugo_create_3.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041427505.png"
 loading="lazy"
+alt="image-20241204142706065"
 >&lt;/p>
 &lt;/li>
 &lt;/ul>
@@ -91,14 +98,16 @@ loading="lazy"
 &lt;li>存放网站的静态文件，设置为 Public；&lt;/li>
 &lt;li>仓库名必须是 &amp;lt;username.github.io&amp;gt;，username 是你 GitHub 的用户名。&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5cgithub_create_1.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041427039.png"
 loading="lazy"
+alt="image-20241204142744986"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>创建好仓库之后，按照图示开启 GitHub Page。前往 &lt;strong>setting -&amp;gt; Pages -&amp;gt; Branch&lt;/strong> 选择 &lt;strong>main&lt;/strong> 分支，保存设置。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5cgithub_create_2.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041430056.png"
 loading="lazy"
+alt="image-20241204143019772"
 >&lt;/p>
 &lt;/li>
 &lt;li>
@@ -132,20 +141,23 @@ loading="lazy"
 &lt;/li>
 &lt;li>
 &lt;p>前往 &lt;strong>settings -&amp;gt; Developer Settings -&amp;gt; Personal access tokens&lt;/strong> 创建一个 &lt;strong>token(classic)&lt;/strong>&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5cgithub_create_4.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041431459.png"
 loading="lazy"
+alt="image-20241204143137362"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>如果要考虑安全的话，Token 有效期不要设置永不过期。还有就是注意勾选上 repo 和 workflow。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5cgithub_create_5.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041432653.png"
 loading="lazy"
+alt="image-20241204143201582"
 >&lt;/p>
 &lt;/li>
 &lt;li>
 &lt;p>将生成的 Token（注意保存，只有当刚生成时才能看见）加入博客源文件仓库的 secrets 中，前往 &lt;strong>Settings -&amp;gt; Secrets and variables -&amp;gt; Actions&lt;/strong> 设置。&lt;/p>
-&lt;p>&lt;img src="D:%5cworkSpace%5cMarkdown%5cblog%5ccontent%5cpost%5c%e5%8d%9a%e5%ae%a2%5cimg%5cgithub_create_6.png"
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041432649.png"
 loading="lazy"
+alt="image-20241204143222219"
 >&lt;/p>
 &lt;/li>
 &lt;li>
