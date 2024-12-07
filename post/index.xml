@@ -5,13 +5,18 @@
 &lt;p>大致可以分为下面几类：&lt;/p>
 &lt;ul>
 &lt;li>
-&lt;p>公共图床：&lt;/p>
+&lt;p>公共图床：只需要上传图片即可，网站会返回给你图片的 URL，例如 &lt;a class="link" href="https://www.helloimg.com/" target="_blank" rel="noopener"
+>Hello图床&lt;/a> 。简单方便，但是不太稳定，并且有一些上传限制。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071617487.png"
+loading="lazy"
+alt="image-20241207161745355"
+>&lt;/p>
 &lt;/li>
 &lt;li>
-&lt;p>代码托管平台：&lt;/p>
+&lt;p>代码托管平台：类似于 GitHub，Gitee 这种。&lt;/p>
 &lt;/li>
 &lt;li>
-&lt;p>云服务器：&lt;/p>
+&lt;p>云服务器：类似于阿里云、腾讯云、华为云这些。&lt;/p>
 &lt;/li>
 &lt;/ul>
 &lt;/li>
@@ -41,12 +46,16 @@ loading="lazy"
 alt="image-20241207154307220"
 >&lt;/p>
 &lt;p>之后我们需要将我们的图床设置为 GitHub，&lt;strong>图床设置 -&amp;gt; GitHub&lt;/strong> ，填写好你的配置点击确定即可。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071613264.png"
+loading="lazy"
+alt="image-20241207161334207"
+>&lt;/p>
 &lt;ul>
 &lt;li>设定仓库名：你的 GitHub 用户名 / 你的图床仓库名&lt;/li>
 &lt;li>设定分支名：上传到仓库的那个分支&lt;/li>
 &lt;li>设定 Token：就是上面我们生成的那个 Token。&lt;/li>
-&lt;li>设定存储路径：你要将上传的文件放到仓库的那个文件夹下（例如存放在 static 目录下，填写 &lt;code>static/&lt;/code>）。若存储在根目录下，则不填。&lt;/li>
-&lt;li>设定自定义域名：https://cdn.jsdelivr.net/gh/user/repo@brach，如果是上传到默认分支，则去掉 @ 及其之后的内容。&lt;/li>
+&lt;li>设定存储路径：你要将上传的文件放到仓库的那个文件夹下（例如存放在根目录下的 static 目录下，填写 &lt;code>static/&lt;/code>）。若存储在根目录下，则不填。&lt;/li>
+&lt;li>设定自定义域名：https://cdn.jsdelivr.net/gh/user/repo@brach，如果是上传到默认分支，则去掉 @ 及其之后的内容。（这里博主使用了 jsDelivr 来进行加速优化网站打开速度）&lt;/li>
 &lt;/ul>
 &lt;h2 id="0x03typora-实现-cv-自动上传">0x03：Typora 实现 CV 自动上传
 &lt;/h2>&lt;p>博主使用的 Typora 支持 PicGo，可以实现在文章内插入图片自动上传至图床。前往 **文件 -&amp;gt; 偏好设置&amp;hellip; -&amp;gt; 图像 **。&lt;/p>
