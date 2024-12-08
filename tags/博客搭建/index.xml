@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>博客搭建 on 踩坑记录</title><link>https://the-oone.github.io/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</link><description>Recent content in 博客搭建 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sat, 07 Dec 2024 08:45:20 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/index.xml" rel="self" type="application/rss+xml"/><item><title>GitHub ➕ PicGo 图床配置</title><link>https://the-oone.github.io/p/github-picgo-%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE/</link><pubDate>Sat, 07 Dec 2024 08:45:20 +0800</pubDate><guid>https://the-oone.github.io/p/github-picgo-%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE/</guid><description>&lt;h2 id="图床">图床
+&lt;/h2>&lt;p>博客除了文字之外还有图片，但是由于图片的位置是在本地上，因此当上传至网站上时是没办法访问到这些图片的。而图床就可以解决这个问题，其本质上就是一个可以被互联网访问的存放图片的空间。&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>大致可以分为下面几类：&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>公共图床：只需要上传图片即可，网站会返回给你图片的 URL，例如 &lt;a class="link" href="https://www.helloimg.com/" target="_blank" rel="noopener"
+>Hello图床&lt;/a> 。简单方便，但是不太稳定，并且有一些上传限制。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071617487.png"
+loading="lazy"
+alt="image-20241207161745355"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>代码托管平台：类似于 GitHub，Gitee 这种。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>云服务器：类似于阿里云、腾讯云、华为云这些。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;p>本来想省心直接使用阿里云服务器，看了眼价格之后，默默放弃了（学生党伤不起~）。最后还是选择了 GitHub 作为图床，除了在国内访问不便之外其他方面都还好。&lt;/p>
+&lt;h2 id="github-搭建图床">GitHub 搭建图床
+&lt;/h2>&lt;p>首先需要一个 GitHub 仓库，仓库名随意，设置为 public，建议加上 README 文件，这样默认分支就会变成 main。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071527305.png"
+loading="lazy"
+alt="image-20241207152656918"
+>&lt;/p>
+&lt;p>之后需要申请 Token，前往 &lt;strong>settings -&amp;gt; Developer Settings -&amp;gt; Personal access tokens&lt;/strong> 创建一个 &lt;strong>token(classic)&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041431459.png"
+loading="lazy"
+alt="image-20241204143137362"
+>&lt;/p>
+&lt;p>勾选上 repo，如果要考虑安全的话，Token 有效期不要设置永不过期。还有就是注意这个 Token 只有在刚申请的时候才能看到，注意保存，否则只能重新申请一个新的。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071536353.png"
+loading="lazy"
+alt="image-20241207153620166"
+>&lt;/p>
+&lt;h2 id="picgo">PicGo
+&lt;/h2>&lt;p>这时候我们就可以将图片上传到仓库了，但是每次都需要手动 Git 上传到仓库这样太麻烦了，可以使用 PicGo 这款图片上传和管理工具。点击进入其 &lt;a class="link" href="https://github.com/Molunerfinn/PicGo" target="_blank" rel="noopener"
+>GitHub&lt;/a> 页面，点击下图位置进去下载页面，选择一个版本下载好。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071543273.png"
+loading="lazy"
+alt="image-20241207154307220"
+>&lt;/p>
+&lt;p>之后我们需要将我们的图床设置为 GitHub，&lt;strong>图床设置 -&amp;gt; GitHub&lt;/strong> ，填写好你的配置点击确定即可。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071613264.png"
+loading="lazy"
+alt="image-20241207161334207"
+>&lt;/p>
+&lt;ul>
+&lt;li>设定仓库名：你的 GitHub 用户名 / 你的图床仓库名&lt;/li>
+&lt;li>设定分支名：上传到仓库的那个分支&lt;/li>
+&lt;li>设定 Token：就是上面我们生成的那个 Token。&lt;/li>
+&lt;li>设定存储路径：你要将上传的文件放到仓库的那个文件夹下（例如存放在根目录下的 static 目录下，填写 &lt;code>static/&lt;/code>）。若存储在根目录下，则不填。&lt;/li>
+&lt;li>设定自定义域名：https://cdn.jsdelivr.net/gh/user/repo@brach，如果是上传到默认分支，则去掉 @ 及其之后的内容。（这里博主使用了 jsDelivr 来进行加速优化网站打开速度）&lt;/li>
+&lt;/ul>
+&lt;h2 id="typora-实现-cv-自动上传">Typora 实现 CV 自动上传
+&lt;/h2>&lt;p>博主使用的 Typora 支持 PicGo，可以实现在文章内插入图片自动上传至图床。前往 &lt;strong>文件 -&amp;gt; 偏好设置&amp;hellip; -&amp;gt; 图像&lt;/strong>。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071607907.png"
+loading="lazy"
+alt="image-20241207160710836"
+>&lt;/p>
+&lt;p>按照图示全部设置完成之后，点击 &lt;code>验证图片上传选项&lt;/code> ，可以看到上传成功&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071606880.png"
+loading="lazy"
+alt="image-20241207160629837"
+>&lt;/p></description></item><item><title>GitHub Pages ➕ Hugo 部署个人博客</title><link>https://the-oone.github.io/p/github-pages-hugo-%E9%83%A8%E7%BD%B2%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</link><pubDate>Mon, 02 Dec 2024 18:51:20 +0800</pubDate><guid>https://the-oone.github.io/p/github-pages-hugo-%E9%83%A8%E7%BD%B2%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</guid><description>&lt;h2 id="准备工作">准备工作
+&lt;/h2>&lt;ul>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://GitHub.com/gohugoio/hugo" target="_blank" rel="noopener"
+>Hugo&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>从 Hugo GitHub 仓库选择合适版本的下载，从下图中所指示位置即可进入下载页面&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041422942.png"
+loading="lazy"
+alt="image-20241204142246453"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>选择与你机器对应的版本（我这里选择 0.139.3 版本，windows 系统，对应文件为 hugo_extended_withdeploy_0.139.3_windows-amd64.zip）&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041424519.png"
+loading="lazy"
+alt="image-20241204142409072"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>将下载好的文件解压缩，在命令行敲击 &lt;strong>hugo version&lt;/strong>，看到如下结果则表示安装成功。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041424936.png"
+loading="lazy"
+alt="image-20241204142449688"
+>&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://git-scm.com/" target="_blank" rel="noopener"
+>Git&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>选择合适的版本下载，按照指引一路 next。（由于博主很早之前就已经下载了 Git，所以这块没有图片展示）&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="创建博客站点">创建博客站点
+&lt;/h2>&lt;ul>
+&lt;li>
+&lt;p>使用 Hugo（建议将其加入环境变量） 创建你的站点，在命令行中输入 &lt;strong>hugo new site sitename&lt;/strong>。出现下图所示，则表明创建好了站点，按照这上面的步骤来即可。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041425244.png"
+loading="lazy"
+alt="image-20241204142517147"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>进入你的站点文件夹，可以看到 Hugo 创建了以下文件&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041425109.png"
+loading="lazy"
+alt="image-20241204142549989"
+>&lt;/p>
+&lt;p>&lt;code>archetypes&lt;/code> 目录包含用于新内容的模板。&lt;/p>
+&lt;p>&lt;code>assets&lt;/code> 目录包含通常通过资源管道传递的全局资源。包括图片、CSS、Sass、JavaScript 等。&lt;/p>
+&lt;p>&lt;code>content&lt;/code> 目录包含组成站点内容的标记文件（通常是 markdown）和页面资源。&lt;/p>
+&lt;p>&lt;code>data&lt;/code> 目录包含用于增强内容、配置、本地化和导航的数据文件（JSON、TOML、YAML 或 XML）。&lt;/p>
+&lt;p>&lt;code>hugo.tomal&lt;/code> 是 Hugo 的配置文件&lt;/p>
+&lt;p>&lt;code>i18n&lt;/code> 目录包含多语言站点的翻译表。&lt;/p>
+&lt;p>&lt;code>layouts&lt;/code> 目录包含将内容、数据和资源转换为完整网站的模板。&lt;/p>
+&lt;p>&lt;code>static&lt;/code> 目录包含在构建站点时将复制到 public 目录的文件，例如 &lt;code>favicon.ico&lt;/code>、&lt;code>robots.txt&lt;/code> 和用于验证站点拥有权的文件。在引入页面包和资源管道之前，&lt;code>static&lt;/code> 目录也用于存放图片、CSS 和 JavaScript 等资源。&lt;/p>
+&lt;p>&lt;code>themes&lt;/code> 目录包含一个或多个主题，每个主题位于自己的子目录中。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Hugo 默认不带主题，因此你需要去 &lt;a class="link" href="https://themes.gohugo.io/" target="_blank" rel="noopener"
+>主题社区&lt;/a> 下载主题，我这里选择 &lt;a class="link" href="https://GitHub.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener"
+>Stack&lt;/a> 这款主题。首先将该文件夹初始为 Git 仓库，再增加主题作为子模块克隆到 theme 文件夹下。使用命令如下：&lt;/p>
+&lt;p>初始化仓库：git init -b main&lt;/p>
+&lt;p>添加主题：git submodule add &lt;a class="link" href="https://GitHub.com/CaiJimmy/hugo-theme-stack.git" target="_blank" rel="noopener"
+>https://GitHub.com/CaiJimmy/hugo-theme-stack.git&lt;/a> themes/hugo-theme-stack&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>将 themes\hugo-theme-stack\exampleSite 目录下的 content 文件夹和 hugo.yaml 复制到站点根目录（也就是你上面创建的那个文件夹下，我这里是 myblog），并且删除 hugo.toml 文件。&lt;/p>
+&lt;p>NOTE：需要删除 content\post\rich-content ，该文件夹内存放的资源访问不了，会导致 Hugo 无法启动）&lt;/p>
+&lt;p>使用命令：hugo server -D 启动网站，可以发现站点多了两个文件夹。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041426519.png"
+loading="lazy"
+alt="image-20241204142633162"
+>&lt;/p>
+&lt;p>&lt;code>public&lt;/code> 目录包含发布的网站，在运行 &lt;code>hugo&lt;/code> 命令时生成。Hugo 根据需要重建此目录及其内容。&lt;/p>
+&lt;p>&lt;code>resources&lt;/code> 目录包含 Hugo 资源管道的缓存输出，在运行 &lt;code>hugo&lt;/code> 或 &lt;code>hugo server&lt;/code> 命令时生成。默认情况下，此缓存目录包括 CSS 和图片。Hugo 根据需要重建此目录及其内容。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>访问 http://localhost:1313/，看到如下结果表示你的博客已经在本地搭建好了&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041427505.png"
+loading="lazy"
+alt="image-20241204142706065"
+>&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="github-部署">GitHub 部署
+&lt;/h2>&lt;ul>
+&lt;li>
+&lt;p>搭建好本地环境之后，就需要将网站部署在 GitHub 上。这里有两种部署方式：&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>一种是手动上传文件，只需要创建一个 GitHub Page仓库：&lt;/p>
+&lt;ul>
+&lt;li>存放网站的静态文件，设置为 Public；&lt;/li>
+&lt;li>仓库名必须是 &amp;lt;username.github.io&amp;gt;，username 是你 GitHub 的用户名。&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041427039.png"
+loading="lazy"
+alt="image-20241204142744986"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>创建好仓库之后，按照图示开启 GitHub Page。前往 &lt;strong>setting -&amp;gt; Pages -&amp;gt; Branch&lt;/strong> 选择 &lt;strong>main&lt;/strong> 分支，保存设置。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041430056.png"
+loading="lazy"
+alt="image-20241204143019772"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>将 public 文件夹上传至 GitHub 仓库，上传成功后访问 https://&amp;lt;GiuHub用户名&amp;gt;.github.io，就能看到自己的博客内容了。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">git init -b main
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git add .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># git config user.name &amp;#34;your_user_name&amp;#34; # 第一次使用 Git 或者未配置全局变量需要加上此行&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># git config user.email &amp;#34;your_user_email&amp;#34; # 第一次使用 Git 或者未配置全局变量需要加上此行&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git commit -m &lt;span class="s2">&amp;#34;first commit&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git remote add origin &amp;lt;your_github_repository_address&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git push -u origin main
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>另一种是 GitHub Action 自动化部署，还需要创建一个博客源文件仓库：&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>存放你的网站源文件，建议设置为 Private 防止源码文件泄露&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>前往 &lt;strong>settings -&amp;gt; Developer Settings -&amp;gt; Personal access tokens&lt;/strong> 创建一个 &lt;strong>token(classic)&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041431459.png"
+loading="lazy"
+alt="image-20241204143137362"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>如果要考虑安全的话，Token 有效期不要设置永不过期。还有就是注意勾选上 repo 和 workflow。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041432653.png"
+loading="lazy"
+alt="image-20241204143201582"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>将生成的 Token（注意保存，只有当刚生成时才能看见）加入博客源文件仓库的 secrets 中，前往 &lt;strong>Settings -&amp;gt; Secrets and variables -&amp;gt; Actions&lt;/strong> 设置。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041432649.png"
+loading="lazy"
+alt="image-20241204143222219"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>在站点根目录下创建一个 &lt;strong>.github/workflows/xxx.yaml&lt;/strong> 文件配置工作流&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">name: deploy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">on:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> push:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> branches:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - main &lt;span class="c1"># 当 main 分支发生 push 的时候，运行下面的 jobs&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">jobs:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deploy:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runs-on: ubuntu-latest &lt;span class="c1"># 运行环境&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> steps:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - name: Checkout
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uses: actions/checkout@v4
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fetch-depth: &lt;span class="m">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - name: Setup Hugo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uses: peaceiris/actions-hugo@v3
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hugo-version: &lt;span class="s2">&amp;#34;0.139.3&amp;#34;&lt;/span> &lt;span class="c1"># 建议和你下载的 hugo 版本一致&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extended: &lt;span class="nb">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - name: Build Web
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> run: hugo -D &lt;span class="c1"># 使用 hugo 构建静态网页&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - name: Deploy Web
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uses: peaceiris/actions-gh-pages@v4
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PERSONAL_TOKEN: &lt;span class="si">${&lt;/span>&lt;span class="p">{ secrets.你的Token变量名 &lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="o">}&lt;/span> &lt;span class="c1"># 发布到其他 repo 需要提供上面生成的 personal access token&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> EXTERNAL_REPOSITORY: 你的GitHub名/你的仓库名 &lt;span class="c1"># 发布到哪个 repo&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PUBLISH_BRANCH: main &lt;span class="c1"># 发布到哪个branch&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PUBLISH_DIR: ./public &lt;span class="c1"># 要发布哪个文件夹的内容&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commit_message: auto deploy
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>将站点根目录下的文件上传至博客源文件仓库，上传成功会出发 GitHub ACtion，自动部署静态页面，访问 https://&amp;lt;GiuHub用户名&amp;gt;.github.io，就能看到自己最新的博客内容了。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul></description></item></channel></rss>
