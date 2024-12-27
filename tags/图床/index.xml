@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>图床 on 踩坑记录</title><link>https://the-oone.github.io/tags/%E5%9B%BE%E5%BA%8A/</link><description>Recent content in 图床 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sat, 07 Dec 2024 08:45:20 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/%E5%9B%BE%E5%BA%8A/index.xml" rel="self" type="application/rss+xml"/><item><title>GitHub ➕ PicGo 图床配置</title><link>https://the-oone.github.io/p/github-picgo-%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE/</link><pubDate>Sat, 07 Dec 2024 08:45:20 +0800</pubDate><guid>https://the-oone.github.io/p/github-picgo-%E5%9B%BE%E5%BA%8A%E9%85%8D%E7%BD%AE/</guid><description>&lt;h2 id="图床">图床
+&lt;/h2>&lt;p>博客除了文字之外还有图片，但是由于图片的位置是在本地上，因此当上传至网站上时是没办法访问到这些图片的。而图床就可以解决这个问题，其本质上就是一个可以被互联网访问的存放图片的空间。&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>大致可以分为下面几类：&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>公共图床：只需要上传图片即可，网站会返回给你图片的 URL，例如 &lt;a class="link" href="https://www.helloimg.com/" target="_blank" rel="noopener"
+>Hello图床&lt;/a> 。简单方便，但是不太稳定，并且有一些上传限制。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071617487.png"
+loading="lazy"
+alt="image-20241207161745355"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>代码托管平台：类似于 GitHub，Gitee 这种。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>云服务器：类似于阿里云、腾讯云、华为云这些。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;p>本来想省心直接使用阿里云服务器，看了眼价格之后，默默放弃了（学生党伤不起~）。最后还是选择了 GitHub 作为图床，除了在国内访问不便之外其他方面都还好。&lt;/p>
+&lt;h2 id="github-搭建图床">GitHub 搭建图床
+&lt;/h2>&lt;p>首先需要一个 GitHub 仓库，仓库名随意，设置为 public，建议加上 README 文件，这样默认分支就会变成 main。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071527305.png"
+loading="lazy"
+alt="image-20241207152656918"
+>&lt;/p>
+&lt;p>之后需要申请 Token，前往 &lt;strong>settings -&amp;gt; Developer Settings -&amp;gt; Personal access tokens&lt;/strong> 创建一个 &lt;strong>token(classic)&lt;/strong>&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412041431459.png"
+loading="lazy"
+alt="image-20241204143137362"
+>&lt;/p>
+&lt;p>勾选上 repo，如果要考虑安全的话，Token 有效期不要设置永不过期。还有就是注意这个 Token 只有在刚申请的时候才能看到，注意保存，否则只能重新申请一个新的。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071536353.png"
+loading="lazy"
+alt="image-20241207153620166"
+>&lt;/p>
+&lt;h2 id="picgo">PicGo
+&lt;/h2>&lt;p>这时候我们就可以将图片上传到仓库了，但是每次都需要手动 Git 上传到仓库这样太麻烦了，可以使用 PicGo 这款图片上传和管理工具。点击进入其 &lt;a class="link" href="https://github.com/Molunerfinn/PicGo" target="_blank" rel="noopener"
+>GitHub&lt;/a> 页面，点击下图位置进去下载页面，选择一个版本下载好。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071543273.png"
+loading="lazy"
+alt="image-20241207154307220"
+>&lt;/p>
+&lt;p>之后我们需要将我们的图床设置为 GitHub，&lt;strong>图床设置 -&amp;gt; GitHub&lt;/strong> ，填写好你的配置点击确定即可。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071613264.png"
+loading="lazy"
+alt="image-20241207161334207"
+>&lt;/p>
+&lt;ul>
+&lt;li>设定仓库名：你的 GitHub 用户名 / 你的图床仓库名&lt;/li>
+&lt;li>设定分支名：上传到仓库的那个分支&lt;/li>
+&lt;li>设定 Token：就是上面我们生成的那个 Token。&lt;/li>
+&lt;li>设定存储路径：你要将上传的文件放到仓库的那个文件夹下（例如存放在根目录下的 static 目录下，填写 &lt;code>static/&lt;/code>）。若存储在根目录下，则不填。&lt;/li>
+&lt;li>设定自定义域名：https://cdn.jsdelivr.net/gh/user/repo@brach，如果是上传到默认分支，则去掉 @ 及其之后的内容。（这里博主使用了 jsDelivr 来进行加速优化网站打开速度）&lt;/li>
+&lt;/ul>
+&lt;h2 id="typora-实现-cv-自动上传">Typora 实现 CV 自动上传
+&lt;/h2>&lt;p>博主使用的 Typora 支持 PicGo，可以实现在文章内插入图片自动上传至图床。前往 &lt;strong>文件 -&amp;gt; 偏好设置&amp;hellip; -&amp;gt; 图像&lt;/strong>。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071607907.png"
+loading="lazy"
+alt="image-20241207160710836"
+>&lt;/p>
+&lt;p>按照图示全部设置完成之后，点击 &lt;code>验证图片上传选项&lt;/code> ，可以看到上传成功&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412071606880.png"
+loading="lazy"
+alt="image-20241207160629837"
+>&lt;/p></description></item></channel></rss>

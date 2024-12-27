@@ -1,4 +1,1100 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sat, 07 Dec 2024 20:20:34 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>Nginx 反向代理</title><link>https://the-oone.github.io/p/nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/</link><pubDate>Sat, 07 Dec 2024 20:20:34 +0800</pubDate><guid>https://the-oone.github.io/p/nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/</guid><description>&lt;h2 id="需求">需求
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Wed, 18 Dec 2024 21:30:01 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>Redis数据类型</title><link>https://the-oone.github.io/p/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link><pubDate>Wed, 18 Dec 2024 21:30:01 +0800</pubDate><guid>https://the-oone.github.io/p/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid><description>&lt;h2 id="string">String
+&lt;/h2>&lt;p>String 的底层数据结构是 int 和 SDS（Simple Dynamic String），相比 C 的原生字符串，增加了以下功能&lt;/p>
+&lt;ol>
+&lt;li>保存二进制文件&lt;/li>
+&lt;li>获取字符串长度的时间复杂度是 O(1)&lt;/li>
+&lt;li>SDS API 内存安全，保证不会造成缓冲区溢出&lt;/li>
+&lt;/ol>
+&lt;h3 id="内部编码">内部编码
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;strong>int&lt;/strong>，若字符串保存的是整数值，并且可以转换为 long，那么该字符串对象的编码被设置为 &lt;code>int&lt;/code>。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412182154153.png"
+loading="lazy"
+alt="image-20241218215412113"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>embstr&lt;/strong>，若字符串长度小于等于 44 字节（博主测试环境为 Redis 7.4.1），那么使用 &lt;code>embstr&lt;/code> 编码，&lt;strong>一次内存分配&lt;/strong>。只读，修改内容需先转换 &lt;code>raw&lt;/code> 编码。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412182150682.png"
+loading="lazy"
+alt="image-20241218215051546"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>raw&lt;/strong>，若字符串长度大于 44 字节，那么使用 &lt;code>raw&lt;/code> 编码，&lt;strong>两次内存分配&lt;/strong>。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412182151676.png"
+loading="lazy"
+alt="image-20241218215124643"
+>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="常用指令">常用指令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/set/" target="_blank" rel="noopener"
+>SET&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SET key value [NX | XX] [GET] [EX seconds | PX milliseconds |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>&lt;code>EX&lt;/code> &amp;ndash; 设置指定的过期时间，以秒（正整数）为单位。&lt;/li>
+&lt;li>&lt;code>PX&lt;/code> &amp;ndash; 设置指定的过期时间，以毫秒（正整数）为单位。&lt;/li>
+&lt;li>&lt;code>EXAT&lt;/code> &amp;ndash; 设置指定的密钥过期时间，以秒（正整数）为单位。&lt;/li>
+&lt;li>&lt;code>PXAT&lt;/code> &amp;ndash; 设置密钥过期的 Unix 时间，以毫秒为单位（正整数）。&lt;/li>
+&lt;li>&lt;code>NX&lt;/code> &amp;ndash; 当且仅当 key 不存在时才设置。&lt;/li>
+&lt;li>&lt;code>XX&lt;/code> &amp;ndash; 无论如何都会设置 key。&lt;/li>
+&lt;li>&lt;code>KEEPTTL&lt;/code> &amp;ndash; 继承上一个 key 的有效时间。&lt;/li>
+&lt;li>&lt;code>GET&lt;/code> &amp;ndash; 返回存储在密钥中的旧字符串，如果密钥不存在，则返回 nil。 如果键值不是字符串，会返回错误并中止 SET。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/mset/" target="_blank" rel="noopener"
+>MSET&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">MSET key value [key value ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/msetnx/" target="_blank" rel="noopener"
+>MSETNX&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">MSETNX key value [key value ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/getset/" target="_blank" rel="noopener"
+>GETSET&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GETSET key value
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>以原子方式将 key 设置为 value，并返回存储在 key 中的旧值。 当 key 存在但不包含字符串值时，将返回错误信息。 在 SET 操作成功后，与键相关的任何先前的生存时间都将被丢弃。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>
+&lt;p>缓存对象&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>计数器&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>分布式锁&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>若 key 不存在，则显示插入成功，表示加锁成功&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>若 key 存在，则显示插入失败，表示加锁失败&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>需要配合 Lua 脚本实现原子性&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>共享 Session 信息&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="list">List
+&lt;/h2>&lt;p>List 是简单的字符串列表（&lt;strong>按照插入顺序排序&lt;/strong>），可以从头部或者尾部向 List 添加元素，链表最大长度为&lt;code> $2^{32}-1$&lt;/code>&lt;/p>
+&lt;h3 id="内部实现">内部实现
+&lt;/h3>&lt;ul>
+&lt;li>3.2 版本之前由双向链表或压缩链表实现。&lt;/li>
+&lt;li>3.2 版本之后由 QuickList 实现。其是多个节点（压缩列表）组成的双向链表，每个元素可以是一个整数或一个字节数组。&lt;/li>
+&lt;/ul>
+&lt;h3 id="常用指令-1">常用指令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lpush/" target="_blank" rel="noopener"
+>LPUSH&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/rpush/" target="_blank" rel="noopener"
+>RPUSH&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LPUSH/RPUSH key element [element ...
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将所有指定值插入存储在 key 处的列表头部。 如果 key 不存在，则在执行推送操作前将其创建为空列表。 如果 key 持有的值不是 list，则会返回错误信息。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;div>&lt;table frame=void> &lt;!--用了&lt;div>进行封装-->
+&lt;tr>
+&lt;td>&lt;div>&lt;center> &lt;!--每个格子内是图片加标题-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271043542.png"
+alt="LPUSH 命令"
+height="120"/> &lt;!--高度设置-->
+&lt;br> &lt;!--换行-->
+LPUSH 命令 &lt;!--标题1-->
+&lt;/center>&lt;/div>&lt;/td>
+&lt;td>&lt;div>&lt;center> &lt;!--第二张图片-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271044094.png"
+alt="RPUSH 命令"
+height="120"/>
+&lt;br>
+RPUSH 命令
+&lt;/center>&lt;/div>&lt;/td>
+&lt;/tr>
+&lt;/table>&lt;/div>
+&lt;ol start="2">
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lpushx/" target="_blank" rel="noopener"
+>LPUSHX&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/rpushx/" target="_blank" rel="noopener"
+>RPUSHX&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LPUSHX/RPUSHX key element [element ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>仅在 key 已存在并持有一个列表的情况下，在 key 所在列表的首部插入指定值。 如果 key 不存在，则不会执行任何操作。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lpop/" target="_blank" rel="noopener"
+>LPOP&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/rpop/" target="_blank" rel="noopener"
+>RPOP&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LPOP/RPOP key [count]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>删除并返回存储在 key 处的列表的 &lt;strong>最初/最后&lt;/strong> 一个元素。 默认情况下，该命令从列表 &lt;strong>头部/尾部&lt;/strong> 弹出一个元素。 如果提供了可选的 count 参数，则根据列表的长度，回复最多包含 count 个元素。&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271354782.png"
+loading="lazy"
+alt="image-20241227135404729"
+>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/blpop/" target="_blank" rel="noopener"
+>BLPOP&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/brpop/" target="_blank" rel="noopener"
+>BRPOP&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">BLPOP/RLPOP key [key ...] timeout
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;strong>BLPOP/BRPOP&lt;/strong> 是一种阻塞列表弹出原语。 它是 &lt;strong>LPOP/RPOP&lt;/strong> 的阻塞版本，因为当没有元素从任何给定列表中弹出时，它会阻塞连接。 元素会从第一个非空列表的 &lt;strong>头部/尾部&lt;/strong> 弹出，并按照给定键的顺序进行检查。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lindex/" target="_blank" rel="noopener"
+>LINDEX&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LINDEX key index
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 中的列表中位于 index 索引处的元素。 索引以 0 为单位，因此 0 表示第一个元素，1 表示第二个元素，以此类推。 负指数可用于指定从列表尾部开始的元素。 这里，-1 表示最后一个元素，-2 表示倒数第二个元素，以此类推。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/llen/" target="_blank" rel="noopener"
+>LLEN&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LLEN key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的 list 的长度。 如果 key 不存在，则将其解释为空列表，并返回 0。 如果 key 中存储的值不是 list，则会返回错误信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lrange/" target="_blank" rel="noopener"
+>LRANGE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LRANGE key start stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的列表的指定元素。 偏移量 start 和 stop 是基于 0 的索引，0 代表列表的第一个元素（列表的头），1 代表下一个元素，以此类推。 这些偏移量也可以是负数，表示从列表的末尾开始的偏移量。 例如，-1 是列表的最后一个元素，-2 是倒数第二个元素，以此类推。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lrem/" target="_blank" rel="noopener"
+>LREM&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LREM key count element
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>从存储在 key 处的列表中移除与元素相同的元素的第一个出现次数。 计数参数对操作的影响如下：count &amp;gt; 0：删除从头部移到尾部的与元素相同的元素。 count &amp;lt; 0：删除从尾部移到头部的与元素相同的元素。 例如，LREM list -2 &amp;ldquo;hello &amp;ldquo;将删除存储在 list 中的 &amp;ldquo;hello &amp;ldquo;的最后两次出现。 请注意，不存在的键会被当作空 list 处理。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/ltrim/" target="_blank" rel="noopener"
+>LTRIM&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LTRIM key start stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>裁剪现有列表，使其只包含指定范围的元素。 start 和 stop 都是基于 0 的索引，其中 0 代表列表的第一个元素（头部），1 代表下一个元素，依此类推。 例如，LTRIM foobar 0 2 将修改存储在 foobar 处的列表，使其只保留列表的前三个元素： start 和 end 也可以是负数，表示与列表末尾的偏移量，其中 -1 表示列表的最后一个元素，-2 表示倒数第二个元素，依此类推。 超出范围的索引不会产生错误：如果 start 大于列表末尾，或 start &amp;gt; end，结果将是一个空列表（导致键被移除）。 如果 end 大于列表末尾，Redis 会将其视为列表的最后一个元素。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/lset/" target="_blank" rel="noopener"
+>LSET&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LSET key index element
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将索引处的列表元素设置为指定值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/linsert/" target="_blank" rel="noopener"
+>LINSERT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">LINSERT key &amp;lt;BEFORE | AFTER&amp;gt; pivot element
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将元素插入存储在 key 处的列表中的参考值 pivot 之前或之后。 如果 key 不存在，则视为空列表，不执行任何操作。 如果 key 存在但不包含列表值，则返回错误信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/brpoplpush/" target="_blank" rel="noopener"
+>BRPOPLPUSH&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">BRPOPLPUSH source destination timeout
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>BRPOPLPUSH 是 RPOPLPUSH 的阻塞变体。 当源代码包含元素时，该命令的行为与 RPOPLPUSH 完全相同。 在 MULTI/EXEC 块内使用时，该命令的行为与 RPOPLPUSH 完全相同。 当源为空时，Redis 会阻塞连接，直到有其他客户端向其推送或超时。 如果超时为零，则会无限期阻塞。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-1">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>消息队列
+&lt;ul>
+&lt;li>&lt;strong>消息保存&lt;/strong>：LPUSH + RPOP / RPUSH+LPOP 实现消息队列（使用 BRPOP 命令进行阻塞式读取，减少消费者性能损失）&lt;/li>
+&lt;li>&lt;strong>重复消息处理&lt;/strong>：生产者实现全局唯一 ID&lt;/li>
+&lt;li>&lt;strong>消息可靠性&lt;/strong>：BRPOPLPUSH（使得消费者从一个 List 中读取消息，同时 Redis 还会把消息再插入到另一个 List 留存）&lt;/li>
+&lt;li>&lt;em>List 不支持多个消费者消费同一条信息&lt;/em>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="hash">Hash
+&lt;/h2>&lt;p>Hash 是一个 key-value 集合，&lt;/p>
+&lt;h3 id="内部实现-1">内部实现
+&lt;/h3>&lt;div>&lt;table frame=void> &lt;!--用了&lt;div>进行封装-->
+&lt;tr>
+&lt;td>&lt;div>&lt;center> &lt;!--每个格子内是图片加标题-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271430099.png"
+alt="压缩列表"
+height="130"/> &lt;!--高度设置-->
+&lt;br> &lt;!--换行-->
+listpack &lt;!--标题1-->
+&lt;/center>&lt;/div>&lt;/td>
+&lt;td>&lt;div>&lt;center> &lt;!--第二张图片-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271431225.png"
+alt="哈希表"
+height="130"/>
+&lt;br>
+hashtable
+&lt;/center>&lt;/div>&lt;/td>
+&lt;/tr>
+&lt;/table>&lt;/div>
+&lt;ul>
+&lt;li>如果 Hash 元素小于 512（默认） 个，所有值小于 64 字节（默认）时，Redis 会使用 listpack 作为底层数据结构。&lt;/li>
+&lt;li>剩余情况，Redis 会使用 hashtable实现&lt;/li>
+&lt;/ul>
+&lt;h3 id="常用命令">常用命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hset/" target="_blank" rel="noopener"
+>HSET&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/hsetnx/" target="_blank" rel="noopener"
+>HSETNX&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HSET key field value [field value ...]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HSETNX key field value
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将指定字段的值设置为存储在 key 的哈希值中各自的值。 HSET 会覆盖哈希值中存在的指定字段的值，HSETNX 对于已存在的字段操作无效。 如果 key 不存在，则会创建一个新的散列键。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hget/" target="_blank" rel="noopener"
+>HGET&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/hmget/" target="_blank" rel="noopener"
+>HMGET&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/hgetall/" target="_blank" rel="noopener"
+>HGETALL&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HGET key field
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HMGET key field [field ...]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HGETALL key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>HGET/HMGET&lt;/em> 返回键存储的哈希值中与字段相关的值。 对于散列中不存在的每个字段，都会返回一个 nil 值。 由于不存在的键被视为空哈希值，因此针对不存在的键运行 HMGET 将返回一个 nil 值列表。&lt;/p>
+&lt;p>&lt;em>HGETALL&lt;/em> 返回存储在 key 处的哈希值的所有字段和值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hdel/" target="_blank" rel="noopener"
+>HDEL&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HDEL key field [field ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>从存储在 key 中的哈希值中删除指定字段。 不存在于散列中的指定字段将被忽略。 如果没有字段，则删除散列。 如果键不存在，则将其视为空散列，此命令返回 0。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hlen/" target="_blank" rel="noopener"
+>HLEN&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HLEN key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 中的哈希值所包含字段的数量。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hexists/" target="_blank" rel="noopener"
+>HEXISTS&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HEXISTS key field
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>如果字段是存储在 key 处的哈希值中的现有字段，则返回 1，否则返回 0。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hkeys/" target="_blank" rel="noopener"
+>HKEYS&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/hvals/" target="_blank" rel="noopener"
+>HVALS&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HKEYS key
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HVALS key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>HKEYS&lt;/em> 返回存储在 key 处的哈希值中的所有字段名。&lt;/p>
+&lt;p>&lt;em>HVALS&lt;/em> 返回键存储的哈希值中的所有值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/hincrby/" target="_blank" rel="noopener"
+>HINCRBY&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/hincrbyfloat/" target="_blank" rel="noopener"
+>HINCRBYFLOAT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">HINCRBY key field increment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HINCRBYFLOAT key field increment
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>HINCRBY&lt;/em> 按增量递增存储在 key 的哈希值中的字段数字。 如果 key 不存在，则会创建一个新的哈希值键。 如果字段不存在，则在执行操作前将其值设置为 0。&lt;/p>
+&lt;p>&lt;em>HINCRBYFLOAT&lt;/em> 按指定增量递增存储在键值处的散列指定字段，该字段代表一个浮点数。 如果增量为负值，结果是哈希字段值递减而不是递增。 如果字段不存在，则在执行操作前将其设置为 0。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-2">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>缓存对象
+&lt;ul>
+&lt;li>(key，field，value) 对应 (对象，属性，值)&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>购物车
+&lt;ul>
+&lt;li>添加商品：HSET cart:{user_id}{goods_id} 1&lt;/li>
+&lt;li>增加数量：HINCRBY cart:{user_id}{goods_id} 2&lt;/li>
+&lt;li>商品总数：HLEN cart:{user_id}&lt;/li>
+&lt;li>删除商品：HDEL cart:{user_id} {goods_id}&lt;/li>
+&lt;li>获取所有商品：HGETALL cart:{usert_id}&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="set">Set
+&lt;/h2>&lt;p>Set 是一个集合（最多支持存储 $2^{32}-1$ 个元素），其中元素&lt;strong>无序、唯一&lt;/strong>。除了支持集合内的增删改查，还支持多个集合交集、并集、差集。&lt;/p>
+&lt;h3 id="内部实现-2">内部实现
+&lt;/h3>&lt;ul>
+&lt;li>如果集合元素都是整数，并且元素个数小于 512（默认），Redis 会使用 整数集合作为底层数据结构。&lt;/li>
+&lt;li>其他情况，Redis 会使用 listpack 作为底层数据结构&lt;/li>
+&lt;/ul>
+&lt;div>&lt;table frame=void> &lt;!--用了&lt;div>进行封装-->
+&lt;tr>
+&lt;td>&lt;div>&lt;center> &lt;!--每个格子内是图片加标题-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271556118.png"
+alt="整数集合"
+height="130"/> &lt;!--高度设置-->
+&lt;br> &lt;!--换行-->
+intset &lt;!--标题1-->
+&lt;/center>&lt;/div>&lt;/td>
+&lt;td>&lt;div>&lt;center> &lt;!--第二张图片-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271558737.png"
+alt="哈希表"
+height="130"/>
+&lt;br>
+listpack
+&lt;/center>&lt;/div>&lt;/td>
+&lt;/tr>
+&lt;/table>&lt;/div>
+&lt;h3 id="常用命令-1">常用命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/sadd/" target="_blank" rel="noopener"
+>SADD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SADD key member [member ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将指定的成员添加到存储在 key 处的集合中。 如果指定的成员已经是这个集合的成员，则会被忽略。 如果 key 不存在，则会先创建一个新集合，然后再添加指定的成员。 如果存储在 key 中的值不是一个集合，则会返回错误信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/srem/" target="_blank" rel="noopener"
+>SREM&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SREM key member [member ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>从存储在 key 处的集合中删除指定的成员。 不属于此集合的指定成员将被忽略。 如果 key 不存在，则将其视为空集，此命令返回 0。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/smembers/" target="_blank" rel="noopener"
+>SMEMBERS&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SMEMBERS key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的集合值的所有成员。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/sismember/" target="_blank" rel="noopener"
+>SISMEMBER&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SISMEMBER key member
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回成员是否是存储在 key 中的集合的成员。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/scard/" target="_blank" rel="noopener"
+>SCARD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SCARD key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的集合的元素个数。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/srandmember/" target="_blank" rel="noopener"
+>SRANDMEMBER&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/spop/" target="_blank" rel="noopener"
+>SPOP&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SRANDMEMBER key [count]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SPOP key [count]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>SRANDMEMBER&lt;/em> 将从存储在 key 处的集合值中随机返回 count 个元素，元素不从 key 中删除。&lt;/p>
+&lt;p>&lt;em>SPOP&lt;/em> 将从存储在 key 处的集合值中随机返回 count 个元素，元素从 key 中删除。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/smove/" target="_blank" rel="noopener"
+>SMOVE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SMOVE source destination member
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将成员从源集合移动到目标集合。 该操作是原子操作。 如果源集合不存在或不包含指定元素，则不执行任何操作，并返回 0。 否则，该元素将从源集合中删除，并添加到目标集合中。 如果指定的元素已存在于目标集合中，则只会从源集合中移除。 如果源集合或目标集合中不存在集合值，则会返回错误信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/sinter/" target="_blank" rel="noopener"
+>SINTER&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/sinterstore/" target="_blank" rel="noopener"
+>SINTERSTORE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SINTER key [key ...]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SINTERSTORE destination key [key ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>SINTER&lt;/em> 返回所有给定集合的交集所产生的集合的成员。&lt;/p>
+&lt;p>&lt;em>SINTERSTORE&lt;/em> 该命令等同于 SINTER，但不是返回结果集，而是将其存储在目的地中。 如果目的地已经存在，则会被覆盖。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-3">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>点赞（元素唯一）&lt;/li>
+&lt;li>共同好友（集合运算）
+&lt;ul>
+&lt;li>数据量较大时，可以让从库进行集合运算，将结果返回给客户端，防止 Redis 阻塞。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>抽奖（元素唯一，去重）&lt;/li>
+&lt;/ul>
+&lt;h2 id="zset">Zset
+&lt;/h2>&lt;p>Zset 相较于 Set 多了个排序属性 score，每个存储元素相当于两个值组成，一个是有序集合的元素值，一个是排序值。&lt;/p>
+&lt;h3 id="内部实现-3">内部实现
+&lt;/h3>&lt;ul>
+&lt;li>若 Zset 中元素小于 128 个，且每个元素小于 64 字节，Redis 使用 listpack 作为底层数据结构。&lt;/li>
+&lt;li>剩余情况，Redis 会使用&lt;/li>
+&lt;/ul>
+&lt;div>&lt;table frame=void> &lt;!--用了&lt;div>进行封装-->
+&lt;tr>
+&lt;td>&lt;div>&lt;center> &lt;!--每个格子内是图片加标题-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271628134.png"
+alt="listpack"
+height="130"/> &lt;!--高度设置-->
+&lt;br> &lt;!--换行-->
+listpack &lt;!--标题1-->
+&lt;/center>&lt;/div>&lt;/td>
+&lt;td>&lt;div>&lt;center> &lt;!--第二张图片-->
+&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202412271628892.png"
+alt="跳表"
+height="130"/>
+&lt;br>
+skiplist
+&lt;/center>&lt;/div>&lt;/td>
+&lt;/tr>
+&lt;/table>&lt;/div>
+&lt;h3 id="常用命令-2">常用命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zadd/" target="_blank" rel="noopener"
+>ZADD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZADD key [NX | XX] [GT | LT] [CH] [INCR] score member [score member ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>&lt;strong>XX&lt;/strong>: 只更新已存在的元素，不添加新元素。&lt;/li>
+&lt;li>&lt;strong>NX&lt;/strong>: 只添加新元素，不更新已存在的元素。&lt;/li>
+&lt;li>&lt;strong>LT&lt;/strong>: 只在新分数小于当前分数时更新现有元素。此标记不会阻止添加新元素。&lt;/li>
+&lt;li>&lt;strong>GT&lt;/strong>: 仅在新分数大于当前分数时更新现有元素。 此标记不会阻止添加新元素。&lt;/li>
+&lt;li>&lt;strong>CH&lt;/strong>: 将返回值从增加的新元素数量修改为改变的元素总数（CH 是 changed 的缩写）。 更改的元素是指新增的元素和已存在的元素，这些元素的分值已被更新。 因此，命令行中指定的元素如果得分与过去相同，则不计算在内。 注意：通常情况下，ZADD 的返回值只计算新增元素的数量。&lt;/li>
+&lt;li>&lt;strong>INCR&lt;/strong>: 指定该选项时，ZADD 的作用与 ZINCRBY 类似。 在这种模式下，只能指定一个分数元素对。&lt;/li>
+&lt;/ul>
+&lt;p>将具有指定分数的所有指定成员添加到存储在 key 处的排序集合中。 可以指定多个分数/成员对。 如果指定的成员已经是排序集合的成员，则会更新得分，并将元素重新插入正确的位置，以确保排序正确。 如果 key 不存在，则会创建一个新的排序集合，并将指定的成员作为唯一成员，就像排序集合为空一样。 如果键存在，但没有排序集，则会返回错误信息。 分数值应是双精度浮点数的字符串表示。 +inf 和 -inf 值也是有效值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zrem/" target="_blank" rel="noopener"
+>ZREM&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZREM key member [member ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>从存储在 key 中的排序集合中删除指定的成员。 如果 key 存在但没有排序集，则会返回错误信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zscore/" target="_blank" rel="noopener"
+>ZSCORE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZSCORE key member
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回排序集合中 key 处成员的得分。 如果排序集合中不存在成员或 key 不存在，则返回 nil。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zcard/" target="_blank" rel="noopener"
+>ZCARD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZCARD key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的排序集的元素个数。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zincrby/" target="_blank" rel="noopener"
+>ZINCRBY&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZINCRBY key increment member
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>用增量递增键值存储的排序集合中成员的得分。 如果成员不存在于排序集合中，则会以增量作为其得分（就像它之前的得分是 0.0）。 如果 key 不存在，则会创建一个以指定成员为唯一成员的新排序集。 如果 key 存在但不包含排序集，则会返回错误信息。 分数值应是数值的字符串表示，并接受双精度浮点数。 可以提供一个负值来递减分数。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zrange/" target="_blank" rel="noopener"
+>ZRANGE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZRANGE key start stop [BYSCORE | BYLEX] [REV] [LIMIT offset count] [WITHSCORES]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 中的排序集合中元素的指定范围。 ZRANGE 可以执行不同类型的范围查询：按索引（秩）、按分数或按词典顺序。&lt;/p>
+&lt;p>默认情况下，该命令执行索引范围查询。 start 和 stop 参数代表基于零的索引，其中 0 代表第一个元素。 这些参数指定了一个包含范围，例如，ZRANGE myzset 0 1 将同时返回排序集的第一个和第二个元素。 索引也可以是负数，表示从排序集末尾开始的偏移量，-1 表示排序集的最后一个元素。&lt;/p>
+&lt;p>当提供 BYSCORE 选项时，命令的行为与 ZRANGEBYSCORE 类似，返回排序集中分数等于或介于 start 和 stop 之间的元素范围。&lt;/p>
+&lt;p>使用 REV 选项会反转排序集，索引 0 将作为得分最高的元素。&lt;/p>
+&lt;p>当使用 BYLEX 选项时，命令的行为与 ZRANGEBYLEX 类似，并返回排序集合中 start 和 stop 之间的元素范围。 请注意，词典排序依赖于所有元素具有相同的分数。 有效的 start 和 stop 必须以 ( 或 [ 开头，以便分别指定范围区间是排他的还是包含的。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/zunionstore/" target="_blank" rel="noopener"
+>ZUNIONSTORE&lt;/a> /&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE &amp;lt;SUM | MIN | MAX&amp;gt;]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-4">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>
+&lt;p>排行榜（有序唯一）&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>电话、姓名排序&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="bitmap">BitMap
+&lt;/h2>&lt;p>BitMap 是一串连续的二进制数组，可以通过偏移量定位元素，适合数据量大且使用二值统计的场景。&lt;/p>
+&lt;h3 id="内部实现-4">内部实现
+&lt;/h3>&lt;p>String 类型是会保存为二进制的字节数组&lt;/p>
+&lt;h3 id="常用命令-3">常用命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/setbit/" target="_blank" rel="noopener"
+>SETBIT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">SETBIT key offset value
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>设置或清除存储在 key 处字符串值偏移量的位。 位的设置或清除取决于值，值可以是 0 或 1。当 key 不存在时，将创建一个新的字符串值。 字符串的增长是为了确保它能容纳偏移量处的位。 偏移参数必须大于或等于 0，且小于 2^32（这将位图限制在 512MB）。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/getbit/" target="_blank" rel="noopener"
+>GETBIT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GETBIT key offset
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回存储在 key 处的字符串值中偏移量处的比特值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/bitcount/" target="_blank" rel="noopener"
+>BITCOUNT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">BITCOUNT key [start end [BYTE | BIT]]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>获取指定范围内值为 1 的个数，默认以字节为单位。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/bitop/" target="_blank" rel="noopener"
+>BITOP&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">BITOP &amp;lt;AND | OR | XOR | NOT&amp;gt; destkey key [key ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>在多个键（包含字符串值）之间执行位操作，并将结果存储到目标键中。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-5">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>
+&lt;p>签到统计&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>判断用户登陆态&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="hyperloglog">HyperLogLog
+&lt;/h2>&lt;p>HyperLogLog 是一种用于统计基数的数据集合类型，基数统计就是指&lt;strong>统计一个集合中不重复的元素个数&lt;/strong>。HyperLogLog 的&lt;strong>统计规则基于概率完成，标准误算率为 0.81%&lt;/strong>。&lt;/p>
+&lt;h3 id="内部实现-5">内部实现
+&lt;/h3>&lt;p>^ - ^&lt;/p>
+&lt;h3 id="常见命令">常见命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/pfadd/" target="_blank" rel="noopener"
+>PFADD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">PFADD key [element [element ...]]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将所有元素参数添加到存储在作为第一个参数指定的变量名下的 HyperLogLog 中。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/pfcount/" target="_blank" rel="noopener"
+>PFCOUNT&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">PFCOUNT key [key ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>使用单键调用时，返回存储在指定变量中的 HyperLogLog 的基数估算值，如果变量不存在，则返回 0。 使用多键调用时，通过内部合并存储在所提供键中的 HyperLogLog 成一个临时的 HyperLogLog，返回所传递的 HyperLogLog 联合的基数估算值。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/pfmerge/" target="_blank" rel="noopener"
+>PFMERGE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">PFMERGE destkey [sourcekey [sourcekey ...]]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将多个 HyperLogLog 值合并为一个 HyperLogLog 。如果目标 HyperLogLog 不存在（默认为空 HyperLogLog），则创建。 如果存在，则将其视为源集之一。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-6">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>网页用户访问(UV)计数&lt;/li>
+&lt;/ul>
+&lt;h2 id="geo">GEO
+&lt;/h2>&lt;p>主要用于存储地理信息&lt;/p>
+&lt;h3 id="内部实现-6">内部实现
+&lt;/h3>&lt;p>底层复用 Zset，使用 GeoHash 实现了经纬度到 Zset 中元素的权重分数的转换，关键机制是 &lt;em>二维地图区间划分&lt;/em> 和 &lt;em>区间编码&lt;/em> 。地理位置转换为经纬度后，使用区间编码标识，并将编码值作为 Zset 的权重分数。&lt;/p>
+&lt;h3 id="常用命令-4">常用命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/geoadd/" target="_blank" rel="noopener"
+>GEOADD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GEOADD key [NX | XX] [CH] longitude latitude member [longitude latitude member ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>&lt;strong>XX&lt;/strong>: 只更新已存在的元素，从不添加元素。&lt;/li>
+&lt;li>&lt;strong>NX&lt;/strong>: 不更新已存在的元素。&lt;/li>
+&lt;li>&lt;strong>CH&lt;/strong>: 不更新已存在的元素。 总是添加新元素： 将返回值从添加的新元素数修改为更改的元素总数（CH 是 changed 的缩写）。 更改的元素是指新增的元素和坐标已更新的已有元素。&lt;/li>
+&lt;/ul>
+&lt;p>存储指定的地理位置信息，将经度，纬度，位置名称添加到指定的 key 中&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/geopos/" target="_blank" rel="noopener"
+>GEOPOS&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GEOPOS key [member [member ...]]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回关键字处排序集所代表的地理空间索引中所有指定成员的位置（经度、纬度）。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/geodist/" target="_blank" rel="noopener"
+>GEODIST&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GEODIST key member1 member2 [M | KM | FT | MI]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回排序集所代表的地理空间索引中两个成员之间的距离。 单位必须是以下之一，默认为米：m 表示米。 km 表示公里。 mi 表示英里。 ft 表示英尺。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/georadius/" target="_blank" rel="noopener"
+>GEORADIUS&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">GEORADIUS key longitude latitude radius &amp;lt;M | KM | FT | MI&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC | DESC]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> [STORE key | STOREDIST key]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回使用 GEOADD 填充了地理空间信息的排序集合的成员，这些成员位于以中心位置和距中心最大距离（半径）指定的区域边界内。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;h3 id="应用场景-7">应用场景
+&lt;/h3>&lt;ul>
+&lt;li>位置信息服务&lt;/li>
+&lt;/ul>
+&lt;h2 id="stream">Stream
+&lt;/h2>&lt;p>专为消息队列设计的数据类型，支持消息持久化、自动生成全局唯一 ID、支持 ACK 确认消息、支持消费组模式&lt;/p>
+&lt;h3 id="内部实现-7">内部实现
+&lt;/h3>&lt;p>^ - ^&lt;/p>
+&lt;h3 id="常见命令-1">常见命令
+&lt;/h3>&lt;ol>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xadd/" target="_blank" rel="noopener"
+>XADD&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XADD key [NOMKSTREAM] [&amp;lt;MAXLEN | MINID&amp;gt; [= | ~] threshold
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> [LIMIT count]] &amp;lt;* | id&amp;gt; field value [field value ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>将指定的数据流条目添加到指定键的数据流中。 如果键值不存在，则使用流的值创建键值。 可以使用 NOMKSTREAM 选项禁用创建数据流键。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xlen/" target="_blank" rel="noopener"
+>XLEN&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XLEN key
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>返回数据流中的条目数。 如果指定的键不存在，命令将返回 0。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xread/" target="_blank" rel="noopener"
+>XREAD&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/xreadgroup/" target="_blank" rel="noopener"
+>XREADGROUP&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] id [id ...]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] [NOACK] STREAMS key [key ...] id [id ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>XREAD&lt;/em> 从一个或多个数据流中读取数据，只返回 ID 大于调用者报告的最后接收 ID 的条目。 该命令有一个选项，可在项目不可用时阻塞。&lt;/p>
+&lt;p>&lt;em>XREADGROUP&lt;/em> 命令是 XREAD 命令的一个特殊版本，支持消费者组。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xdel/" target="_blank" rel="noopener"
+>XDEL&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XDEL key id [id ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>从数据流中删除指定条目，并返回已删除条目的数量。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xrange/" target="_blank" rel="noopener"
+>XRANGE&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XRANGE key start end [COUNT count]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>该命令返回与给定 ID 范围匹配的数据流条目。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a class="link" href="https://redis.io/docs/latest/commands/xpending/" target="_blank" rel="noopener"
+>XPENDING&lt;/a> / &lt;a class="link" href="https://redis.io/docs/latest/commands/xack/" target="_blank" rel="noopener"
+>XACK&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">XPENDING key group [[IDLE min-idle-time] start end count [consumer]]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">XACK key group id [id ...]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;em>XPENDING&lt;/em> 查询每个消费组内所有消费者 &lt;strong>已读取、尚未确认&lt;/strong> 的消息。&lt;/p>
+&lt;p>&lt;em>XACK&lt;/em> 向消息队列确认消息处理已完成&lt;/p>
+&lt;/li>
+&lt;/ol></description></item><item><title>Redis简介</title><link>https://the-oone.github.io/p/redis%E7%AE%80%E4%BB%8B/</link><pubDate>Mon, 16 Dec 2024 20:29:41 +0800</pubDate><guid>https://the-oone.github.io/p/redis%E7%AE%80%E4%BB%8B/</guid><description>&lt;h2 id="redis-简介">Redis 简介
+&lt;/h2>&lt;p>Redis（&lt;em>REmote DIctionary Serve&lt;/em>）是一个开源的基于内存的 Key-Value 数据库，常常用于&lt;strong>缓存、消息队列、分布式锁等场景&lt;/strong>。除此之外，Redis 还支持&lt;strong>事务、持久化、Lua 脚本、集群（主从、哨兵、切片）、发布/订阅&lt;/strong>等等。&lt;/p>
+&lt;h2 id="redis-对比-memcached">Redis 对比 Memcached
+&lt;/h2>&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">&lt;/th>
+&lt;th style="text-align: center">Redis&lt;/th>
+&lt;th style="text-align: center">Memcached&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">数据类型&lt;/td>
+&lt;td style="text-align: center">String、Hash、Lits、Set、ZSet、Bitmap&lt;br />HyperLogLog、GEO、Stream&lt;/td>
+&lt;td style="text-align: center">String、Integer、ByteArray、List、Set&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">持久化&lt;/td>
+&lt;td style="text-align: center">原生支持（AOF、RDB）&lt;/td>
+&lt;td style="text-align: center">原生不支持&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">集群&lt;/td>
+&lt;td style="text-align: center">原生支持（主从复制、哨兵、切片）&lt;/td>
+&lt;td style="text-align: center">原生不支持&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">其他功能&lt;/td>
+&lt;td style="text-align: center">发布/订阅、Lua 脚本、事务等等&lt;/td>
+&lt;td style="text-align: center">——&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h2 id="redis-使用场景">Redis 使用场景
+&lt;/h2>&lt;h2 id="相关资料">相关资料
+&lt;/h2>&lt;p>&lt;a class="link" href="https://redis.io/" target="_blank" rel="noopener"
+>Redis 官网&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://github.com/redis/redis" target="_blank" rel="noopener"
+>Redis Github 地址&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://onecompiler.com/redis" target="_blank" rel="noopener"
+>Redis 在线服务&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://www.redisio.com/" target="_blank" rel="noopener"
+>Redis 中文文档&lt;/a>&lt;/p></description></item><item><title>Nginx 反向代理</title><link>https://the-oone.github.io/p/nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/</link><pubDate>Sat, 07 Dec 2024 20:20:34 +0800</pubDate><guid>https://the-oone.github.io/p/nginx-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/</guid><description>&lt;h2 id="需求">需求
 &lt;/h2>&lt;p>目前负责一个 Web 项目，该项目前后端是分离的，但是只给了一个端口和服务器进行远程连接。所以问题就出现了，前端需要一个端口用于用户访问，而后端也需要一个端口来和前端进行数据传输，那么就需要至少两个端口才能开启这个 Web 服务。为了解决这个问题，在网上查找资料发现 nginx 可以通过反向代理来实现同一个端口访问不同的服务。话不多说，直接开搞！&lt;/p>
 &lt;h2 id="方案">方案
 &lt;/h2>&lt;h3 id="nginx-安装">Nginx 安装
