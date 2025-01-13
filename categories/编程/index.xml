@@ -216,9 +216,9 @@ P超过10ms，会给M发送抢占信号&lt;/li>
 行，把抢占的协程放到全局队列里，M继续寻找其他goroutine来运行&lt;/li>
 &lt;li>被抢占的G再次调度过来执行时，会继续原来的执行流&lt;/li>
 &lt;/ol>
-&lt;p>抢占分为&lt;code>_Prunning&lt;/code>和`_Psyscall``&lt;/p>
+&lt;p>抢占分为&lt;code>_Prunning&lt;/code>和&lt;code>_Psyscall&lt;/code>&lt;/p>
 &lt;ul>
-&lt;li>``_Psyscall`抢占通常是由于阻塞性系统调用引起的，比如磁盘io、cgo。&lt;/li>
+&lt;li>&lt;code>_Psyscall&lt;/code>抢占通常是由于阻塞性系统调用引起的，比如磁盘io、cgo。&lt;/li>
 &lt;li>&lt;code>_Prunning&lt;/code>抢占通常是由于一些类似死循环的计算逻辑引起的。&lt;/li>
 &lt;/ul>
 &lt;h2 id="work-staeling--hand-off">work staeling &amp;amp; hand off
