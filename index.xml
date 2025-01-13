@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>踩坑记录</title><link>https://the-oone.github.io/</link><description>Recent content on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Mon, 13 Jan 2025 14:46:19 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>GMP调度模型</title><link>https://the-oone.github.io/p/gmp%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/gmp%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>踩坑记录</title><link>https://the-oone.github.io/</link><description>Recent content on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Mon, 13 Jan 2025 14:46:19 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>GMP 调度模型</title><link>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
 &lt;/h2>&lt;table>
 &lt;thead>
 &lt;tr>
@@ -399,6 +399,75 @@ alt="image-20250113164624713"
 &lt;li>当&lt;strong>父 Goroutine 为 main&lt;/strong> 时，所有的子 Goroutine 都&lt;strong>会&lt;/strong>跟着父 Goroutine 退出&lt;/li>
 &lt;li>若&lt;strong>父 Goroutine 不为 main&lt;/strong> 时，子 Goroutine &lt;strong>不会&lt;/strong>跟着父 Goroutine 退出&lt;/li>
 &lt;/ul>
+&lt;h2 id="goroutine-的状态流转">Goroutine 的状态流转
+&lt;/h2>&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501132129821.png"
+loading="lazy"
+alt="image-20250113212939765"
+>&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">&lt;/th>
+&lt;th style="text-align: center">状态&lt;/th>
+&lt;th style="text-align: center">含义&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">_Gidle&lt;/td>
+&lt;td style="text-align: center">空闲态&lt;/td>
+&lt;td style="text-align: center">G 刚刚创建，还未初始化&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Grunnable&lt;/td>
+&lt;td style="text-align: center">就绪态&lt;/td>
+&lt;td style="text-align: center">G 在运行队列，等待 M 取出（此时 M 有 P）&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Grunning&lt;/td>
+&lt;td style="text-align: center">运行态&lt;/td>
+&lt;td style="text-align: center">M 正在运行 G&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Gsyscall&lt;/td>
+&lt;td style="text-align: center">系统调用&lt;/td>
+&lt;td style="text-align: center">M 中运行的 G 发起系统调用（此时 M 无 P）&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Gwaiting&lt;/td>
+&lt;td style="text-align: center">阻塞态&lt;/td>
+&lt;td style="text-align: center">G 等待执行资源&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Gdead&lt;/td>
+&lt;td style="text-align: center">完成态&lt;/td>
+&lt;td style="text-align: center">G 已经执行完毕&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">_Gcopystack&lt;/td>
+&lt;td style="text-align: center">复制栈&lt;/td>
+&lt;td style="text-align: center">G 正获取一个新的栈空间，并将原内容复制过去&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h2 id="goroutine-泄露">Goroutine 泄露
+&lt;/h2>&lt;p>Goroutine 没有被正确的关闭或管理，会导致他们在程序运行过程中无法被回收，最终导致资源浪费和潜在的性能问题&lt;/p>
+&lt;h3 id="泄露原因">泄露原因
+&lt;/h3>&lt;ul>
+&lt;li>Goroutine 内部进行 channel/mutex 等读写操作被一直阻塞&lt;/li>
+&lt;li>Goroutine 内的业务逻辑进入死循环，资源无法释放&lt;/li>
+&lt;li>Goroutine 内的业务逻辑进入长时间等待，又不断新增的 Goroutine 进入等待&lt;/li>
+&lt;/ul>
+&lt;h3 id="泄露场景">泄露场景
+&lt;/h3>&lt;ul>
+&lt;li>未初始化 channel&lt;/li>
+&lt;li>channel 发送未接收&lt;/li>
+&lt;li>channel 接收未发送&lt;/li>
+&lt;li>资源连接未关闭&lt;/li>
+&lt;li>未成功解锁&lt;/li>
+&lt;li>死循环&lt;/li>
+&lt;li>sync.WaitGroup 使用不当&lt;/li>
+&lt;/ul>
 &lt;h2 id="多个协程交替打印奇偶数字">多个协程交替打印奇偶数字
 &lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -500,7 +569,7 @@ alt="image-20250113164624713"
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
-&lt;/div></description></item><item><title>Redis数据类型</title><link>https://the-oone.github.io/p/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link><pubDate>Wed, 18 Dec 2024 21:30:01 +0800</pubDate><guid>https://the-oone.github.io/p/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid><description>&lt;h2 id="string">String
+&lt;/div></description></item><item><title>Redis 数据类型</title><link>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link><pubDate>Wed, 18 Dec 2024 21:30:01 +0800</pubDate><guid>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid><description>&lt;h2 id="string">String
 &lt;/h2>&lt;p>String 的底层数据结构是 int 和 SDS（Simple Dynamic String），相比 C 的原生字符串，增加了以下功能&lt;/p>
 &lt;ol>
 &lt;li>保存二进制文件&lt;/li>
