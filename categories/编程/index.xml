@@ -156,6 +156,15 @@ alt="image-20250113154209545"
 &lt;/li>
 &lt;li>&lt;em>M&lt;/em> 执行完 &lt;em>G&lt;/em> 后清理现场，重新进入调度循环（将 M 上运⾏的goroutine切换为G0，G0负责调度时协程的切换）&lt;/li>
 &lt;/ol>
+&lt;h3 id="调度器生命周期">调度器生命周期
+&lt;/h3>&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501132210897.png"
+loading="lazy"
+alt="image-20250113221048794"
+>&lt;/p>
+&lt;ul>
+&lt;li>M0：M0 是启动程序后的编号为 0 的主线程，这个 M 对应的实例会在全局变量 runtime.m0 中，不需要在 heap 上分配，M0 负责执行初始化操作和启动第一个 G， 在之后 M0 就和其他的 M 一样了。&lt;/li>
+&lt;li>G0：G0 是每次启动一个 M 都会第一个创建的 gourtine，G0 仅用于负责调度的 G，G0 不指向任何可执行的函数，每个 M 都会有一个自己的 G0。在调度或系统调用时会使用 G0 的栈空间，全局变量的 G0 是 M0 的 G0。&lt;/li>
+&lt;/ul>
 &lt;h3 id="调度时机">调度时机
 &lt;/h3>&lt;ul>
 &lt;li>抢占式调度
