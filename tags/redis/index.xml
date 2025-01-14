@@ -1,4 +1,75 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Redis on 踩坑记录</title><link>https://the-oone.github.io/tags/redis/</link><description>Recent content in Redis on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Wed, 18 Dec 2024 21:30:01 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/redis/index.xml" rel="self" type="application/rss+xml"/><item><title>Redis 数据类型</title><link>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link><pubDate>Wed, 18 Dec 2024 21:30:01 +0800</pubDate><guid>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid><description>&lt;h2 id="string">String
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Redis on 踩坑记录</title><link>https://the-oone.github.io/tags/redis/</link><description>Recent content in Redis on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Tue, 14 Jan 2025 21:04:32 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/redis/index.xml" rel="self" type="application/rss+xml"/><item><title>Redis持久化</title><link>https://the-oone.github.io/p/redis%E6%8C%81%E4%B9%85%E5%8C%96/</link><pubDate>Tue, 14 Jan 2025 21:04:32 +0800</pubDate><guid>https://the-oone.github.io/p/redis%E6%8C%81%E4%B9%85%E5%8C%96/</guid><description>&lt;h2 id="redis-为什么需要持久化">Redis 为什么需要持久化
+&lt;/h2>&lt;h2 id="rdbredis-database">RDB（Redis Database）
+&lt;/h2>&lt;p>RDB 持久化以指定的时间间隔对数据集执行时间点快照（实际上就是记录某一个时间节点的&lt;strong>内存数据&lt;/strong>）。&lt;/p>
+&lt;h3 id="配置操作">配置操作
+&lt;/h3>&lt;p>Redis 7.4.2 默认 RDB 参数&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 1p/1h 或 100p/5m 或 10000p/60s &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">save &lt;span class="m">3600&lt;/span> &lt;span class="m">1&lt;/span> &lt;span class="m">300&lt;/span> &lt;span class="m">100&lt;/span> &lt;span class="m">60&lt;/span> &lt;span class="m">10000&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># RDB 快照保存文件名&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dbfilename dump.rdb
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># RDB 快照保存目录&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dir ./
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 在快照写入失败时是否停止写请求&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">stop-writes-on-bgsave-error yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否开启 RDB 压缩（LZF压缩算法）&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdbcompression yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否开启 RDB 数据校验（CRC64算法）&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdbchecksum yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否删除未启用持久性的实例中复制使用的 RDB 文件&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdb-del-sync-files no
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>默认情况下，Redis 会将数据集的快照保存在磁盘上一个名为 dump.rdb 的二进制文件中。 你也可以手动调用 SAVE 或 BGSAVE 命令。&lt;/p>
+&lt;ul>
+&lt;li>执行 save 命令，就会在主线程生成 RDB 文件，由于和执行操作命令在同一个线程，所以如果写入 RDB 文件的时间太长，&lt;strong>会阻塞主线程&lt;/strong>。&lt;strong>线上禁止使用&lt;/strong>&lt;/li>
+&lt;li>执行了 bgsave 命令，会创建一个子进程来生成 RDB 文件，这样可以&lt;strong>避免主线程的阻塞&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;p>执行 flushall/flushdb 命令也会产生 &lt;code>.rdb&lt;/code> 文件，但是该文件中&lt;strong>没有任何数据&lt;/strong>（因为他是在清盘之后才保存的）。在恢复数据时，一定要将服务和备份分机隔离（防止备份的 .&lt;code>rdb&lt;/code> 文件被覆盖）。&lt;/p>
+&lt;h3 id="触发时机">触发时机
+&lt;/h3>&lt;ul>
+&lt;li>配置文件中默认的快照配置&lt;/li>
+&lt;li>手动 sava/bgsave 命令&lt;/li>
+&lt;li>执行 flushall/flushdb 命令&lt;/li>
+&lt;li>执行 shutdown 且没有设置 AOF 持久化&lt;/li>
+&lt;li>主从复制，主节点自动触发&lt;/li>
+&lt;/ul>
+&lt;h3 id="优势">优势
+&lt;/h3>&lt;ul>
+&lt;li>适合大规模的数据恢复&lt;/li>
+&lt;li>按照业务定时备份&lt;/li>
+&lt;li>对数据完整性和一致性要求不高&lt;/li>
+&lt;li>RDB 文件在内存中加载速度比 AOF 快得多&lt;/li>
+&lt;/ul>
+&lt;h3 id="劣势">劣势
+&lt;/h3>&lt;ul>
+&lt;li>RDB 会丢失备份间隔时间内的所有数据，也就是说距离上一次备份期间内的所有数据都会被丢失&lt;/li>
+&lt;li>RDB 是全量快照，每次执行都会把所有的数据记录到磁盘中，频繁的磁盘 I/O 可能影响服务器性能&lt;/li>
+&lt;li>RDB 依赖主进程的 fork，在极端形况下内存占用会变为原先的 2 倍。&lt;/li>
+&lt;/ul>
+&lt;h3 id="执行-rdb-快照时能否修改数据">执行 RDB 快照时能否修改数据
+&lt;/h3>&lt;p>可以，使用&lt;strong>写时复制技术&lt;/strong>。&lt;/p>
+&lt;p>执行 bgsave 命令时，通过 fork() 创建子进程，因此父进程、子进程共享同一片内存数据（两份页表，一份物理内存）。只有当发生数据修改时，才会复制一份新的物理内存（注意此时&lt;strong>子进程会将旧的物理内存写入 RDB 文件&lt;/strong>，而&lt;strong>主进程会在新的物理内存中修改数据&lt;/strong>）。这样就可以避免主线程阻塞。&lt;/p>
+&lt;h3 id="修复破损的-rdb-文件">修复破损的 RDB 文件
+&lt;/h3>&lt;h2 id="aofappend-only-file">AOF（Append Only File）
+&lt;/h2>&lt;p>AOF 持久性记录服务器收到的每个写入操作。 这些操作可以在服务器启动时再次重放，重建原始数据集。 命令记录格式与 Redis 协议本身相同。&lt;/p></description></item><item><title>Redis 数据类型</title><link>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link><pubDate>Wed, 18 Dec 2024 21:30:01 +0800</pubDate><guid>https://the-oone.github.io/p/redis-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid><description>&lt;h2 id="string">String
 &lt;/h2>&lt;p>String 的底层数据结构是 int 和 SDS（Simple Dynamic String），相比 C 的原生字符串，增加了以下功能&lt;/p>
 &lt;ol>
 &lt;li>保存二进制文件&lt;/li>
