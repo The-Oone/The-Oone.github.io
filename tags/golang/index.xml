@@ -1,4 +1,93 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Mon, 13 Jan 2025 14:46:19 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>GMP 调度模型</title><link>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Tue, 14 Jan 2025 13:19:36 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>垃圾回收 GC</title><link>https://the-oone.github.io/p/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-gc/</link><pubDate>Tue, 14 Jan 2025 13:19:36 +0800</pubDate><guid>https://the-oone.github.io/p/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-gc/</guid><description>&lt;h2 id="什么是-gc">什么是 GC
+&lt;/h2>&lt;p>垃圾回收（Garbage Collection，GC）是一种自动内存管理机制。&lt;/p>
+&lt;p>现代高级编程语言管理内存有两种方式：&lt;/p>
+&lt;ul>
+&lt;li>手动：C/C++，Rust等，需要主动申请或者释放内存&lt;/li>
+&lt;li>自动：Java，Golang等，有内存分配器和垃圾收集器自动分配和回收内存&lt;/li>
+&lt;/ul>
+&lt;p>程序中会使用两种内存：&lt;/p>
+&lt;ul>
+&lt;li>堆内存：程序共享的内存，由 GC 进行回收&lt;/li>
+&lt;li>栈内存：线程专用的内存，存储函数的参数值、局部变量等，由操作系统自动分配释放&lt;/li>
+&lt;/ul>
+&lt;h2 id="go-的垃圾回收">Go 的垃圾回收
+&lt;/h2>&lt;h3 id="gc-相关术语">GC 相关术语
+&lt;/h3>&lt;ul>
+&lt;li>STW：全称 stop the word，GC 期间某个阶段会停止所有的赋值器，中断程序逻辑，以确定引用关系。&lt;/li>
+&lt;li>root 对象：根对象是指赋值器不需要通过其他对象就可以直接访问到的对象&lt;/li>
+&lt;/ul>
+&lt;h3 id="gc-v13">GC V1.3
+&lt;/h3>&lt;p>1.3 版本 Go 使用&lt;strong>标记-清除&lt;/strong>作为垃圾回收算法：&lt;/p>
+&lt;ol>
+&lt;li>开启STW，停止程序的运行&lt;/li>
+&lt;li>从根节点遍历，标记找出的所有可达对象&lt;/li>
+&lt;li>清理未标记的对象&lt;/li>
+&lt;li>继续运行程序&lt;/li>
+&lt;/ol>
+&lt;p>重复循环上述 1-4 步，直到 process 程序生命周期结束。标记清除法的&lt;strong>最大弊端就是在整个GC期间需要STW&lt;/strong>，将整个程序暂停。因为如果不进行STW的话，会出现已经被标记的对象A，引用了新的未被标记的对象B，但由于对象A已经标记过了，不会再重新扫描A对B的可达性，从而将B对象当做垃圾回收掉。&lt;/p>
+&lt;h3 id="gc-v15">GC V1.5
+&lt;/h3>&lt;p>1.5 版本使用&lt;strong>标记-清除算法，结合三色标记，插入写屏障&lt;/strong>：&lt;/p>
+&lt;ol>
+&lt;li>创建白、灰、黑三个集合&lt;/li>
+&lt;li>将所有对象先放入白色集合中&lt;/li>
+&lt;li>遍历所有 root 对象，把遍历到的对象从白色集合放入灰色集合（这里放入灰色集合的都是根节点直接可达的对象）&lt;/li>
+&lt;li>遍历灰色集合，将灰色对象直接可达的对象从白色集合放入灰色集合，自身标记为黑色&lt;/li>
+&lt;li>重复第四步，直至灰色集合中没有任何对象&lt;/li>
+&lt;li>回收白色集合内的所有对象&lt;/li>
+&lt;/ol>
+&lt;p>对于上述的算法来讲,仍然需要依赖STW的。因为如果不暂停程序, 程序的逻辑改变对象引用关系, 这种动作如果在标记阶段做了修改，会影响标记结果的正确性。&lt;/p>
+&lt;p>在三色标记法过程中对象丢失需要同时满足两个条件：&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>条件一&lt;/strong>：白色对象被黑色对象引用&lt;/li>
+&lt;li>&lt;strong>条件二&lt;/strong>：灰色对象和白色对象之间的可达关系遭到破坏&lt;/li>
+&lt;/ul>
+&lt;p>Go 团队提出两个解决方案&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>强三色不变式&lt;/strong>：不允许黑色对象引用白色对象，破坏条件一&lt;/li>
+&lt;li>&lt;strong>弱三色不变式&lt;/strong>：黑色对象可以引用白色对象，但是白色对象的上游必须存在灰色对象，破坏条件二&lt;/li>
+&lt;/ul>
+&lt;p>Go 团队基于上述不变式提出两种实现机制：&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>插入写屏障&lt;/strong>（满足强三色不变式）
+&lt;ul>
+&lt;li>规则：当一个对象引用另一个对象时，将另一个对象标记为灰色&lt;/li>
+&lt;li>劣势：无法管理栈操作，需要 STW 重新扫描栈&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;strong>删除写屏障&lt;/strong>（满足弱三色不变式）
+&lt;ul>
+&lt;li>规则：在删除引用时，如果被删除引用的对象自身为灰色或者白色，那么会标记为灰色&lt;/li>
+&lt;li>劣势：冗余扫描成本高，回收精度低&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="gc-v18">GC V1.8
+&lt;/h3>&lt;p>1.8 版本使用&lt;strong>标记-清除算法，结合三色标记法和混合写屏障&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>GC 开始将栈上的所有可达对象均标记为黑色&lt;/li>
+&lt;li>GC 期间，任何在栈上创建的新对象，均为黑色&lt;/li>
+&lt;li>堆上被删除对象标记为灰色&lt;/li>
+&lt;li>堆上被添加的对象标记为灰色&lt;/li>
+&lt;/ol>
+&lt;h2 id="gc-的触发时间">GC 的触发时间
+&lt;/h2>&lt;ul>
+&lt;li>主动触发：调用 &lt;code>runtime.GC()&lt;/code> 方法&lt;/li>
+&lt;li>被动触发：
+&lt;ul>
+&lt;li>定时触发，该触发条件由 &lt;code>runtime.forcegcperiod&lt;/code> 变量控制，默认为 2 分 钟。当超过两分钟没有产生任何 GC 时，触发 GC&lt;/li>
+&lt;li>根据内存分配阈值触发，该触发条件由环境变量 GOGC 控制，默认值为100（100%），当前堆内存占用是上次 GC 结束后占用内存的 2 倍时，触发 GC&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="gc-调优">GC 调优
+&lt;/h2>&lt;ul>
+&lt;li>控制内存分配的速度，限制&lt;code>Goroutine&lt;/code>的数量，提高赋值器&lt;code>mutator&lt;/code>的CPU利用率(降低GC的CPU利用率)&lt;/li>
+&lt;li>少量使用&lt;code>+&lt;/code>连接&lt;code>string&lt;/code>&lt;/li>
+&lt;li>&lt;code>slice&lt;/code>提前分配足够的内存来降低扩容带来的拷贝&lt;/li>
+&lt;li>避免&lt;code>map key&lt;/code>对象过多，导致扫描时间增加&lt;/li>
+&lt;li>变量复用，减少对象分配，例如使用&lt;code>sync.Pool&lt;/code>来复用需要频繁创建临时对象，使用全局变量&lt;/li>
+&lt;li>增大&lt;code>GOGC&lt;/code>的值，降低GC的运行频率&lt;/li>
+&lt;/ul></description></item><item><title>GMP 调度模型</title><link>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
 &lt;/h2>&lt;table>
 &lt;thead>
 &lt;tr>
