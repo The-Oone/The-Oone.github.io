@@ -1,4 +1,307 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Wed, 15 Jan 2025 14:44:36 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>Go内存分配</title><link>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link><pubDate>Wed, 15 Jan 2025 14:44:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid><description>&lt;h2 id="go-的内存分配机制">Go 的内存分配机制
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Thu, 16 Jan 2025 13:42:27 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>Map</title><link>https://the-oone.github.io/p/map/</link><pubDate>Thu, 16 Jan 2025 13:42:27 +0800</pubDate><guid>https://the-oone.github.io/p/map/</guid><description>&lt;h2 id="实现原理">实现原理
+&lt;/h2>&lt;p>Go 的 map 是一个指针，占用 8 个字节，指向 hmap 结构体，map 底层是基于哈希表+链地址法存储的。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">hmap&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">count&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="c1">// 当前 map 中元素个数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">flags&lt;/span> &lt;span class="kt">uint8&lt;/span> &lt;span class="c1">// 写入状态标志
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">B&lt;/span> &lt;span class="kt">uint8&lt;/span> &lt;span class="c1">// buckets 的数量（2^B 个）
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">noverflow&lt;/span> &lt;span class="kt">uint16&lt;/span> &lt;span class="c1">// 溢出 buckets 的数量
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">hash0&lt;/span> &lt;span class="kt">uint32&lt;/span> &lt;span class="c1">// 生成 hash 的随机数种子
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buckets&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span> &lt;span class="c1">// 指向 buckets 数组的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">oldbuckets&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span> &lt;span class="c1">// 扩容时，指向扩容前的 buckets 数组的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">nevacuate&lt;/span> &lt;span class="kt">uintptr&lt;/span> &lt;span class="c1">// 表示扩容进度，小于此地址的 buckets 已经迁移成功
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">extra&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">mapextra&lt;/span> &lt;span class="c1">// 保存溢出桶的地址
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">mapextra&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">overflow&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">bmap&lt;/span> &lt;span class="c1">// overflow 包含的是 hmap.buckets 的 overflow 的 buckets
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">oldoverflow&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">bma&lt;/span> &lt;span class="c1">// oldoverflow 包含扩容时 hmap.oldbuckets 的 overflow 的 bucket
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">nextOverflow&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">bmap&lt;/span> &lt;span class="c1">// 指向空闲的 overflow bucket 的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>bmap &lt;/code>就是我们常说的 &lt;code>bucket&lt;/code>，一个 &lt;code>bucket&lt;/code> 里面会最多装 8 个key，这些 key 哈希结果的低 B 位是相同的。在 &lt;code>bucket&lt;/code> 内，又会根据 key 计算出来的hash值的高8位（一个桶内最多有8个位置）来决定 key 到底落入哪个位置。&lt;/p>
+&lt;p>当 map 的 key 和 value 均不为指针类型时，bmap 将完全不包含指针，那么垃圾回收就不用扫描 bmap。bmap 指向溢出桶的字段 overflow 是 uintptr 类型，为了防止这些溢出桶被垃圾回收，所以需要 &lt;code>mapextra.overflow&lt;/code> 将它保存起来。如果 bmap 的 overflow 是 *bmap 类型，那么垃圾回收需要扫描一个个拉链表，效率明显不如直接扫描一段内存（hmap.mapextra.overflow）效率高。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// bmap 静态结构
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">bmap&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">tophash&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">bucketCnt&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="kt">uint8&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// bmap 动态结构
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">bmap&lt;/span> &lt;span class="kd">struct&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">tophash&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="kt">uint8&lt;/span> &lt;span class="c1">// 存储哈希值的高 8 位，用于快速比较和查找
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">keys&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">keytype&lt;/span> &lt;span class="c1">// 存放 key，keytype 由编译器编译时候确定
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">values&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="nx">elemtype&lt;/span> &lt;span class="c1">// 存放 value，elemtype 由编译器编译时候确定
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">overflow&lt;/span> &lt;span class="kt">uintptr&lt;/span> &lt;span class="c1">// 指向下一个 bmap，overflow 是 uintptr 而不是 *bmap 类型，保证 bmap 完全不含指针，是为了减少 GC，溢出桶存储到 extra 字段中
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>tophash 字段不仅存储 hash(key) 的高 8 位，还会存储一些状态值，用来表明当前 &lt;code>bucket&lt;/code> 状态。/为了避免 hash(key) 高 8 位值和这些状态值相等，所以当 hash(key) &amp;lt; minTopHash 时，自动将其值加上 minTopHash 作为该 key 的 tophash。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="nx">emptyRest&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c1">//表明此桶单元为空，且更高索引的单元也是空
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">emptyOne&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="c1">//表明此桶单元为空
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">evacuatedX&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="mi">2&lt;/span> &lt;span class="c1">//用于表示扩容迁移到新桶前半段区间
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">evacuatedY&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="mi">3&lt;/span> &lt;span class="c1">//用于表示扩容迁移到新桶后半段区间
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">evacuatedEmpty&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">4&lt;/span> &lt;span class="c1">//用于表示此单元已迁移
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">minTopHash&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="mi">5&lt;/span> &lt;span class="c1">// key的tophash值与桶状态值分割线值，小于此值的一定代表着桶单元的状态，大于此值的一定是key对应的tophash值
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="初始化-map">初始化 Map
+&lt;/h2>&lt;ol>
+&lt;li>创建一个 hmap 结构体对象&lt;/li>
+&lt;li>生成一个哈希因子 hash0 并赋值到 hmap 对象中（用于后续为key创建哈希值）&lt;/li>
+&lt;li>根据 hint=10，并根据算法规则来创建B，此时的 B=1&lt;/li>
+&lt;li>根据 B 去创建 bucket 并存放在数组中。当前的 Bmap 的数量为 2
+&lt;ul>
+&lt;li>B&amp;lt;4时，创建桶的个数为：$2^B$（标准桶）&lt;/li>
+&lt;li>B≥4时，创建桶的个数为：$2^B+2^{B-4}$（标准桶+溢出桶）&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ol>
+&lt;h2 id="扩容-map">扩容 Map
+&lt;/h2>&lt;p>Go map 扩容，数据迁移不是一次性迁移，而是等到访问到具体某个 bucket 时才将数据从旧 bucket 中迁移到新bucket 中。&lt;/p>
+&lt;ul>
+&lt;li>一次性迁移会涉及到cpu资源和内存资源的占用，在数据量较大时，会有较大的延时，影响正常业务逻辑。因此 Go 采用渐进式的数据迁移，每次最多迁移两个bucket的数据到新的buckets中（一个是当前访问key所在的bucket，然后再多迁移一个bucket）&lt;/li>
+&lt;/ul>
+&lt;h3 id="触发时机">触发时机
+&lt;/h3>&lt;ul>
+&lt;li>
+&lt;p>超过负载：&lt;strong>map 元素个数 &amp;gt; 6.5 * bucket 数量&lt;/strong>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="p">!&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">growing&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nf">overLoadFactor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">count&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">B&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nf">tooManyOverflowBuckets&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">noverflow&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">B&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">hashGrow&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">t&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">h&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">goto&lt;/span> &lt;span class="nx">again&lt;/span> &lt;span class="c1">// Growing the table invalidates everything, so try again
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 判断是否在扩容
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">h&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">hmap&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">growing&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="kt">bool&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">oldbuckets&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="kc">nil&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>溢出桶太多：当 &lt;strong>bucket 小于 $2^{15}$ 且溢出桶总大于等于桶总数&lt;/strong>，则认为溢出桶过多；当 &lt;strong>bucket 大于等于 $2^{15}$时且溢出桶总数大于等于 $2^{15}$时&lt;/strong>，即认为溢出桶太多了。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="扩容机制">扩容机制
+&lt;/h3>&lt;ul>
+&lt;li>双倍扩容：如果是因为超过负载扩容，新建一个 buckets 数组（大小为原先的 2 倍），然后旧的 buckets 数据搬到新的 buckets 中&lt;/li>
+&lt;li>等量扩容：如果是因为溢出桶太多，buckets 数量维持不变，重新做一遍类似双倍扩容的搬迁操作， 把松散的键值对重新排列一次，使得同一个bucket中的key排列地更紧密，提高buckets利用 率，进而保证更快的存取。&lt;/li>
+&lt;/ul>
+&lt;h2 id="遍历-map">遍历 Map
+&lt;/h2>&lt;p>使用 range 多次遍历 map 时输出的 key 和 value 的顺序可能不同。这是 Go 语言的设计者们&lt;strong>有意为之&lt;/strong>，旨在提示开发者们，Go 底层实现并不保证 map 遍历顺序稳定，请大家不要依赖 range 遍历结果顺序。&lt;/p>
+&lt;p>主要原因有一下两点：&lt;/p>
+&lt;ul>
+&lt;li>map在遍历时，并不是从固定的0号bucket开始遍历的，每次遍历，都会从一个&lt;strong>随机值序号的bucket&lt;/strong>，再从其中&lt;strong>随机的cell&lt;/strong>开始遍历&lt;/li>
+&lt;li>map遍历时，是按序遍历bucket，同时按需遍历bucket中和其overflow bucket中的cell。但是map在扩容后，会发生key的搬迁，这造成原来落在一个bucket中的key，搬迁后，有可能会落到其他bucket中了，从这个角度看，遍历map的结果就不可能是按照原来的顺序了&lt;/li>
+&lt;/ul>
+&lt;p>map 本身是无序的，且遍历时顺序还会被随机化，如果想顺序遍历 map，需要对 map key 先排序，再按照 key 的顺序遍历 map。&lt;/p>
+&lt;h2 id="查找-map">查找 Map
+&lt;/h2>&lt;p>Go 语言中读取 map 有两种语法：带 comma 和 不带 comma。当要查询的 key 不在 map 里，带 comma 的用法会返回一个 bool 型变量提示 key 是否在 map 中；而不带 comma 的语句则会返回一个 value 类型的零值。如果 value 是 int 型就会返回 0，如果 value 是 string 类型，就会返回空字符串。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 不带 comma 用法
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">value&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">m&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Printf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;value:%s&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">value&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 带 comma 用法
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">value&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">ok&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">m&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s">&amp;#34;name&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="nx">ok&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Printf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;value:%s&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">value&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>整个流程如下：&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>写保护监测&lt;/strong>：函数首先会检查标志位 flags。如果 flags 的写标志位此时被置 1 了，说明有其他协程在执行写操作，进而导致程序 panic（这也说明了 map 不是线程安全的）；&lt;/li>
+&lt;li>&lt;strong>计算hash值&lt;/strong>：&lt;code>hash:=t.hasher(key,uintptr(h.hash0))&lt;/code>， 不同类型的key会有不同的hash函数&lt;/li>
+&lt;li>&lt;strong>找到hash对应的bucket&lt;/strong>：hash 的低 B 个 bit 位，用来定位 key 所存放的bucket。如果当前正在扩容中，并且定位到的旧bucket数据还未完成迁移，则使用旧的bucket（扩容前的bucket）&lt;/li>
+&lt;li>&lt;strong>遍历bucket查找&lt;/strong>：利用哈希值的高 8 个 bit 位快速判断 key 是否已在当前 bucket 中（如果不在的话，需要去 bucket 的 overflow 中查找）&lt;/li>
+&lt;li>&lt;strong>返回key对应的指针&lt;/strong>：如果通过上面的步骤找到了key对应的槽位下标 i，根据此得到对应 value 的值&lt;/li>
+&lt;/ol>
+&lt;h2 id="map-冲突解决方案">map 冲突解决方案
+&lt;/h2>&lt;ul>
+&lt;li>链地址法&lt;/li>
+&lt;li>开放寻址法&lt;/li>
+&lt;li>线性探测法&lt;/li>
+&lt;/ul>
+&lt;p>Go map采用链地址法解决冲突，具体就是&lt;strong>插入key到map中时&lt;/strong>，当key定位的桶&lt;strong>填满8个元素后&lt;/strong>（这里的单元就是桶，不是元素），将会创建一个溢出桶，并且将溢出桶插入当前桶所在链表尾部。&lt;/p>
+&lt;h2 id="map-的负载因子">map 的负载因子
+&lt;/h2>&lt;p>$负载因子=\frac{哈希表中存储元素}{桶数量}$，其是衡量当前哈希表中空间占用率的核心指标。&lt;/p>
+&lt;p>Go Map 的负载因子是 6.5，原因就是官方测试这个数值负载因子的性能较好，具体可看测试：&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">负载因子&lt;/th>
+&lt;th style="text-align: center">溢出率&lt;/th>
+&lt;th style="text-align: center">耗费字节数/kv 对&lt;/th>
+&lt;th style="text-align: center">查找平均个数（k存在）&lt;/th>
+&lt;th style="text-align: center">查找平均个数（k不存在）&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">4.00&lt;/td>
+&lt;td style="text-align: center">2.13&lt;/td>
+&lt;td style="text-align: center">20.77&lt;/td>
+&lt;td style="text-align: center">3.00&lt;/td>
+&lt;td style="text-align: center">4.00&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">4.50&lt;/td>
+&lt;td style="text-align: center">4.05&lt;/td>
+&lt;td style="text-align: center">17.30&lt;/td>
+&lt;td style="text-align: center">3.25&lt;/td>
+&lt;td style="text-align: center">4.50&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">5.00&lt;/td>
+&lt;td style="text-align: center">6.85&lt;/td>
+&lt;td style="text-align: center">14.77&lt;/td>
+&lt;td style="text-align: center">3.50&lt;/td>
+&lt;td style="text-align: center">5.00&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">5.50&lt;/td>
+&lt;td style="text-align: center">10.55&lt;/td>
+&lt;td style="text-align: center">12.94&lt;/td>
+&lt;td style="text-align: center">3.75&lt;/td>
+&lt;td style="text-align: center">5.50&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">6.00&lt;/td>
+&lt;td style="text-align: center">15.27&lt;/td>
+&lt;td style="text-align: center">11.67&lt;/td>
+&lt;td style="text-align: center">4.00&lt;/td>
+&lt;td style="text-align: center">6.00&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">6.50&lt;/td>
+&lt;td style="text-align: center">20.90&lt;/td>
+&lt;td style="text-align: center">10.79&lt;/td>
+&lt;td style="text-align: center">4.25&lt;/td>
+&lt;td style="text-align: center">6.50&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">7.00&lt;/td>
+&lt;td style="text-align: center">27.14&lt;/td>
+&lt;td style="text-align: center">10.15&lt;/td>
+&lt;td style="text-align: center">4.50&lt;/td>
+&lt;td style="text-align: center">7.00&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">7.50&lt;/td>
+&lt;td style="text-align: center">34.03&lt;/td>
+&lt;td style="text-align: center">9.73&lt;/td>
+&lt;td style="text-align: center">4.75&lt;/td>
+&lt;td style="text-align: center">7.50&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">8.00&lt;/td>
+&lt;td style="text-align: center">41.10&lt;/td>
+&lt;td style="text-align: center">9.40&lt;/td>
+&lt;td style="text-align: center">5.00&lt;/td>
+&lt;td style="text-align: center">8.00&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h2 id="map-和-syncmap">Map 和 sync.Map
+&lt;/h2>&lt;p>Go 语言的 &lt;code>sync.Map&lt;/code> 支持并发读写&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">Map&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mu&lt;/span> &lt;span class="nx">Mutex&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">read&lt;/span> &lt;span class="nx">atomic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Value&lt;/span> &lt;span class="c1">// readOnly
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">dirty&lt;/span> &lt;span class="kd">map&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="kd">interface&lt;/span>&lt;span class="p">{}]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">entry&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">misses&lt;/span> &lt;span class="kt">int&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>map 在单个 goroutine 上的读写性能会很好，因为他在读写时没有额外的同步开销，但是他并不是并发安全的，如果多个 goroutine 同时读写一个 map 会导致数据竞争&lt;/li>
+&lt;li>sync.Map 通常在并发读写时性能较好，在多 goroutine 场景下会更加安全，适合读多写少场景（写多场景下会导致 read map 缓存失效，性能下降）&lt;/li>
+&lt;/ul></description></item><item><title>Go内存分配</title><link>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link><pubDate>Wed, 15 Jan 2025 14:44:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid><description>&lt;h2 id="go-的内存分配机制">Go 的内存分配机制
 &lt;/h2>&lt;p>Go语言内置运行时（就是runtime），抛弃了传统的内存分配方式，改为自主管理。这样可以自主地实现更好的内存使用模式，比如内存池、预分配等等。这样，不会每次内存分配都需要进行系统调用。&lt;/p>
 &lt;h3 id="设计思想">设计思想
 &lt;/h3>&lt;ul>
