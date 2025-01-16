@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Thu, 16 Jan 2025 13:42:27 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>Map</title><link>https://the-oone.github.io/p/map/</link><pubDate>Thu, 16 Jan 2025 13:42:27 +0800</pubDate><guid>https://the-oone.github.io/p/map/</guid><description>&lt;h2 id="实现原理">实现原理
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Thu, 16 Jan 2025 13:42:27 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>Go八股之Map</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bmap/</link><pubDate>Thu, 16 Jan 2025 13:42:27 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bmap/</guid><description>&lt;h2 id="实现原理">实现原理
 &lt;/h2>&lt;p>Go 的 map 是一个指针，占用 8 个字节，指向 hmap 结构体，map 底层是基于哈希表+链地址法存储的。&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
@@ -301,7 +301,7 @@
 &lt;/div>&lt;ul>
 &lt;li>map 在单个 goroutine 上的读写性能会很好，因为他在读写时没有额外的同步开销，但是他并不是并发安全的，如果多个 goroutine 同时读写一个 map 会导致数据竞争&lt;/li>
 &lt;li>sync.Map 通常在并发读写时性能较好，在多 goroutine 场景下会更加安全，适合读多写少场景（写多场景下会导致 read map 缓存失效，性能下降）&lt;/li>
-&lt;/ul></description></item><item><title>Go内存分配</title><link>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link><pubDate>Wed, 15 Jan 2025 14:44:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid><description>&lt;h2 id="go-的内存分配机制">Go 的内存分配机制
+&lt;/ul></description></item><item><title>Go八股之内存分配</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</link><pubDate>Wed, 15 Jan 2025 14:44:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D/</guid><description>&lt;h2 id="go-的内存分配机制">Go 的内存分配机制
 &lt;/h2>&lt;p>Go语言内置运行时（就是runtime），抛弃了传统的内存分配方式，改为自主管理。这样可以自主地实现更好的内存使用模式，比如内存池、预分配等等。这样，不会每次内存分配都需要进行系统调用。&lt;/p>
 &lt;h3 id="设计思想">设计思想
 &lt;/h3>&lt;ul>
@@ -809,7 +809,7 @@ alt="image-20250115152613550"
 &lt;td style="text-align: center">new函数返回一个指向该类型内存地址的指针&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Slice</title><link>https://the-oone.github.io/p/slice/</link><pubDate>Wed, 15 Jan 2025 13:12:33 +0800</pubDate><guid>https://the-oone.github.io/p/slice/</guid><description>&lt;h2 id="什么是-slice">什么是 Slice
+&lt;/table></description></item><item><title>Go八股之Slice</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bslice/</link><pubDate>Wed, 15 Jan 2025 13:12:33 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bslice/</guid><description>&lt;h2 id="什么是-slice">什么是 Slice
 &lt;/h2>&lt;p>切片是基于数组实现的，底层是数组，可以理解为对底层数组的抽象&lt;/p>
 &lt;h3 id="数据结构">数据结构
 &lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
@@ -1080,7 +1080,7 @@ alt="image-20250115152613550"
 &lt;p>执行 bgsave 命令时，通过 fork() 创建子进程，因此父进程、子进程共享同一片内存数据（两份页表，一份物理内存）。只有当发生数据修改时，才会复制一份新的物理内存（注意此时&lt;strong>子进程会将旧的物理内存写入 RDB 文件&lt;/strong>，而&lt;strong>主进程会在新的物理内存中修改数据&lt;/strong>）。这样就可以避免主线程阻塞。&lt;/p>
 &lt;h3 id="修复破损的-rdb-文件">修复破损的 RDB 文件
 &lt;/h3>&lt;h2 id="aofappend-only-file">AOF（Append Only File）
-&lt;/h2>&lt;p>AOF 持久性记录服务器收到的每个写入操作。 这些操作可以在服务器启动时再次重放，重建原始数据集。 命令记录格式与 Redis 协议本身相同。&lt;/p></description></item><item><title>垃圾回收 GC</title><link>https://the-oone.github.io/p/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-gc/</link><pubDate>Tue, 14 Jan 2025 13:19:36 +0800</pubDate><guid>https://the-oone.github.io/p/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6-gc/</guid><description>&lt;h2 id="什么是-gc">什么是 GC
+&lt;/h2>&lt;p>AOF 持久性记录服务器收到的每个写入操作。 这些操作可以在服务器启动时再次重放，重建原始数据集。 命令记录格式与 Redis 协议本身相同。&lt;/p></description></item><item><title>Go八股之GC</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</link><pubDate>Tue, 14 Jan 2025 13:19:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</guid><description>&lt;h2 id="什么是-gc">什么是 GC
 &lt;/h2>&lt;p>垃圾回收（Garbage Collection，GC）是一种自动内存管理机制。&lt;/p>
 &lt;p>现代高级编程语言管理内存有两种方式：&lt;/p>
 &lt;ul>
@@ -1169,7 +1169,7 @@ alt="image-20250115152613550"
 &lt;li>避免&lt;code>map key&lt;/code>对象过多，导致扫描时间增加&lt;/li>
 &lt;li>变量复用，减少对象分配，例如使用&lt;code>sync.Pool&lt;/code>来复用需要频繁创建临时对象，使用全局变量&lt;/li>
 &lt;li>增大&lt;code>GOGC&lt;/code>的值，降低GC的运行频率&lt;/li>
-&lt;/ul></description></item><item><title>GMP 调度模型</title><link>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/gmp-%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
+&lt;/ul></description></item><item><title>Go八股之GMP调度模型</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgmp%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 13 Jan 2025 14:46:19 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgmp%E8%B0%83%E5%BA%A6%E6%A8%A1%E5%9E%8B/</guid><description>&lt;h2 id="历史背景">历史背景
 &lt;/h2>&lt;table>
 &lt;thead>
 &lt;tr>
@@ -1404,7 +1404,7 @@ alt="image-20250113163923392"
 &lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501131646778.png"
 loading="lazy"
 alt="image-20250113164624713"
->&lt;/p></description></item><item><title>Goroutine</title><link>https://the-oone.github.io/p/goroutine/</link><pubDate>Sun, 12 Jan 2025 16:55:26 +0800</pubDate><guid>https://the-oone.github.io/p/goroutine/</guid><description>&lt;h2 id="为什么需要-goroutine">为什么需要 Goroutine
+>&lt;/p></description></item><item><title>Go八股之Goroutine</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgoroutine/</link><pubDate>Sun, 12 Jan 2025 16:55:26 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgoroutine/</guid><description>&lt;h2 id="为什么需要-goroutine">为什么需要 Goroutine
 &lt;/h2>&lt;p>简单一句话，Goroutine 相比线程拥有更优越的开销性能。&lt;/p>
 &lt;p>这里先简单介绍下进程、线程、协程：&lt;/p>
 &lt;ul>
