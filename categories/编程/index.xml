@@ -1876,20 +1876,32 @@ alt="image-20250115152613550"
 &lt;/span>&lt;span class="lnt">12
 &lt;/span>&lt;span class="lnt">13
 &lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
 &lt;/span>&lt;/code>&lt;/pre>&lt;/td>
 &lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 1p/1h 或 100p/5m 或 10000p/60s &lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">save &lt;span class="m">3600&lt;/span> &lt;span class="m">1&lt;/span> &lt;span class="m">300&lt;/span> &lt;span class="m">100&lt;/span> &lt;span class="m">60&lt;/span> &lt;span class="m">10000&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># RDB 快照保存文件名&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dbfilename dump.rdb
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># RDB 快照保存目录&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dir ./
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 在快照写入失败时是否停止写请求&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">stop-writes-on-bgsave-error yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否开启 RDB 压缩（LZF压缩算法）&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdbcompression yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否开启 RDB 数据校验（CRC64算法）&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdbchecksum yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 是否删除未启用持久性的实例中复制使用的 RDB 文件&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rdb-del-sync-files no
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
@@ -1924,9 +1936,139 @@ alt="image-20250115152613550"
 &lt;h3 id="执行-rdb-快照时能否修改数据">执行 RDB 快照时能否修改数据
 &lt;/h3>&lt;p>可以，使用&lt;strong>写时复制技术&lt;/strong>。&lt;/p>
 &lt;p>执行 bgsave 命令时，通过 fork() 创建子进程，因此父进程、子进程共享同一片内存数据（两份页表，一份物理内存）。只有当发生数据修改时，才会复制一份新的物理内存（注意此时&lt;strong>子进程会将旧的物理内存写入 RDB 文件&lt;/strong>，而&lt;strong>主进程会在新的物理内存中修改数据&lt;/strong>）。这样就可以避免主线程阻塞。&lt;/p>
-&lt;h3 id="修复破损的-rdb-文件">修复破损的 RDB 文件
-&lt;/h3>&lt;h2 id="aofappend-only-file">AOF（Append Only File）
-&lt;/h2>&lt;p>AOF 持久性记录服务器收到的每个写入操作。 这些操作可以在服务器启动时再次重放，重建原始数据集。 命令记录格式与 Redis 协议本身相同。&lt;/p></description></item><item><title>Go八股之GC</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</link><pubDate>Tue, 14 Jan 2025 13:19:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</guid><description>&lt;h2 id="什么是-gc">什么是 GC
+&lt;h2 id="aofappend-only-file">AOF（Append Only File）
+&lt;/h2>&lt;p>AOF 持久性&lt;strong>记录服务器收到的每个写入操作&lt;/strong>。 这些操作可以在服务器启动时再次重放，重建原始数据集。 命令记录格式与 Redis 协议本身相同。&lt;/p>
+&lt;h3 id="配置操作-1">配置操作
+&lt;/h3>&lt;p>Redis 7.4.2 默认 AOF 参数&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># AOF 默认关闭&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">appendonly no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># AOF 文件名&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">appendfilename &lt;span class="s2">&amp;#34;appendonly.aof&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># AOF 保存目录&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">appenddirname &lt;span class="s2">&amp;#34;appendonlydir&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 回写策略（三种，默认 everysec）&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># appendfsync always&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">appendfsync everysec
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># appendfsync no&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>默认情况下，Redis 会将记录到的命令文件保存在磁盘上一个名为 appendonly.aof 的文件中。 Redis 6 之前只有一个 AOF 文件。Redis 7 之后有三个文件（合并在一个文件中）：&lt;/p>
+&lt;ul>
+&lt;li>appendonly.aof.1.base.rdb：基础 AOF，最多只有一个，一般由子进程通过重写产生&lt;/li>
+&lt;li>appendonly.aof.1.incr.aof：增量 AOF，可能存在多个，一般会在 AOF 重写时创建&lt;/li>
+&lt;li>历史 AOF，每次 AOF 重写完成时，之前的基础 AOF 和增量 AOF 都会编程历史 AOF。Redis 配置里没有，因为它会被自动删除&lt;/li>
+&lt;li>appendonly.aof.manifest：跟踪管理 AOF 文件&lt;/li>
+&lt;/ul>
+&lt;h3 id="工作流程">工作流程
+&lt;/h3>&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501172208398.png"
+loading="lazy"
+alt="image-20250117220833281"
+>&lt;/p>
+&lt;ol>
+&lt;li>Client 向 Redis 发送操作命令&lt;/li>
+&lt;li>这些命令首先进入 AOF 缓冲区保存（避免频繁的磁盘 I/O 操作）&lt;/li>
+&lt;li>AOF 根据写回策略将缓冲区命令写入磁盘中&lt;/li>
+&lt;li>为了 AOF 文件的膨胀，会进行 AOF 重写压缩文件&lt;/li>
+&lt;li>Redis 会在服务启动时加载磁盘中的 AOF 文件再次执行这些命令&lt;/li>
+&lt;/ol>
+&lt;h4 id="执行优势">执行优势
+&lt;/h4>&lt;p>Redis 是先执行写操作命令后，才将该命令记录到 AOF 日志里的，这么做其实有两个好处。&lt;/p>
+&lt;ul>
+&lt;li>避免额外的检查开销，因为能执行的命令必然是正确的命令&lt;/li>
+&lt;li>不会阻塞当前写操作命令的执行，因为只有写命令直接成功后才会记录&lt;/li>
+&lt;/ul>
+&lt;h4 id="执行劣势">执行劣势
+&lt;/h4>&lt;ul>
+&lt;li>当 Redis 执行命令后，记录命令前，这个时刻 Redis 服务宕机，那么这个数据就会有丢失的风险&lt;/li>
+&lt;li>由于 Redis 执行命令和 AOF 写入这两个操作均是在一个线程中完成，那么可能导致下一个命令阻塞&lt;/li>
+&lt;/ul>
+&lt;h3 id="写回策略">写回策略
+&lt;/h3>&lt;p>上图中第二步和第三步可以再细化为以下几步：&lt;/p>
+&lt;ol>
+&lt;li>Redis 执行完写命令后，将该命令追加到 &lt;code>server.aoof_buf&lt;/code> 缓冲区中&lt;/li>
+&lt;li>通过调用系统函数 &lt;code>write()&lt;/code>，将缓冲区内数据写入到 AOF 文件中，此时数据并没有写入到硬盘，而是拷贝到了内核缓冲区 &lt;code>page cache&lt;/code>&lt;/li>
+&lt;li>内核缓冲区将数据写入硬盘&lt;/li>
+&lt;/ol>
+&lt;p>Redis 提供了三种写回策略&lt;/p>
+&lt;ul>
+&lt;li>Always
+&lt;ul>
+&lt;li>策略含义：每次写命令执行完后，将 AOF 写回硬盘&lt;/li>
+&lt;li>实际操作：每次写命令执行完之后立刻执行 &lt;code>fsync()&lt;/code> 函数&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Everysec
+&lt;ul>
+&lt;li>策略含义：每次写命令执行完后，先将其写入 AOF 缓冲区，之后每隔一秒将缓冲区写入磁盘&lt;/li>
+&lt;li>实际操作：每次写命令执行完之后，会创建一个异步进程执行 &lt;code>fsync()&lt;/code> 函数&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>No
+&lt;ul>
+&lt;li>策略含义：每次写命令执行完后，先将其写入 AOF 缓冲区，之后将缓冲区写入磁盘（由操作系统决定间隔时间）&lt;/li>
+&lt;li>实际操作：永远不执行 &lt;code>fsync()&lt;/code> 函数&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h4 id="小结">小结
+&lt;/h4>&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">写回策略&lt;/th>
+&lt;th style="text-align: center">写回时机&lt;/th>
+&lt;th style="text-align: center">优点&lt;/th>
+&lt;th style="text-align: center">缺点&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">Always&lt;/td>
+&lt;td style="text-align: center">同步写回&lt;/td>
+&lt;td style="text-align: center">可靠性高&lt;/td>
+&lt;td style="text-align: center">性能开销大&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">Everysec&lt;/td>
+&lt;td style="text-align: center">每秒写回&lt;/td>
+&lt;td style="text-align: center">性能、可靠性均衡&lt;/td>
+&lt;td style="text-align: center">宕机丢失 1 秒内数据&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">No&lt;/td>
+&lt;td style="text-align: center">由操作系统决定&lt;/td>
+&lt;td style="text-align: center">性能高&lt;/td>
+&lt;td style="text-align: center">宕机丢失数据多&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="重写机制">重写机制
+&lt;/h3>&lt;p>当 AOF 文件的大小（默认64MB）超过所设定的阈值后，Redis 启动 重写机制。由于重写操作十分耗时，所以该过程是由子进程 &lt;code>bgrewriteaof&lt;/code> 完成的，有以下两点好处&lt;/p>
+&lt;ul>
+&lt;li>重写期间避免阻塞主进程&lt;/li>
+&lt;li>子进程带有主进程的数据副本，如果父子进程任何一方修改内存会触发写时复制机制，确保数据安全。&lt;/li>
+&lt;/ul>
+&lt;p>触发重写机制后，主进程就会创建重写的 AOF 子进程，此时父子进程共享物理内存，重写子进程只会对该内存读取，重写 AOF 子进程会读取数据库里的所有数据，并逐一把内存数据的键值对转换为一条命令，再将命令记录到重回日志（新的 AOF 文件）。&lt;/p>
+&lt;p>子进程完成 AOF 重写工作后，会向主进程发送一条异步信号。主进程收到信号后首先将 AOF 缓冲区中所有内容追加到新的 AOF 文件中，然后将新的 AOF 文件改名，覆盖掉旧的 AOF 文件。&lt;/p></description></item><item><title>Go八股之GC</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</link><pubDate>Tue, 14 Jan 2025 13:19:36 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bgc/</guid><description>&lt;h2 id="什么是-gc">什么是 GC
 &lt;/h2>&lt;p>垃圾回收（Garbage Collection，GC）是一种自动内存管理机制。&lt;/p>
 &lt;p>现代高级编程语言管理内存有两种方式：&lt;/p>
 &lt;ul>
