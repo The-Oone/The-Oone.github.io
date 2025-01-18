@@ -1,4 +1,469 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Fri, 17 Jan 2025 13:59:42 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>Go八股之Channel</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bchannel/</link><pubDate>Fri, 17 Jan 2025 13:59:42 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bchannel/</guid><description>&lt;h2 id="底层实现原理">底层实现原理
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang on 踩坑记录</title><link>https://the-oone.github.io/tags/golang/</link><description>Recent content in Golang on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sat, 18 Jan 2025 12:17:11 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml"/><item><title>Go八股之Mutex</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bmutex/</link><pubDate>Sat, 18 Jan 2025 12:17:11 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bmutex/</guid><description>&lt;h2 id="锁">锁
+&lt;/h2>&lt;p>&lt;strong>锁是多线程编程中的一种同步机制，用于控制对共享资源的访问。&lt;/strong>&lt;/p>
+&lt;h3 id="悲观锁">悲观锁
+&lt;/h3>&lt;p>悲观锁总是假设最坏的情况，认为共享资源每次被访问的时候就会出现问题(比如共享数据被修改)，所以每次在获取资源操作的时候都会上锁，这样其他线程想拿到这个资源就会阻塞直到锁被上一个持有者释放。也就是说，&lt;strong>共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程&lt;/strong>。&lt;/p>
+&lt;h3 id="乐观锁">乐观锁
+&lt;/h3>&lt;p>乐观锁总是假设最好的情况，认为共享资源每次被访问的时候不会出现问题，线程可以不停地执行，无需加锁也无需等待，只是在提交修改的时候去验证对应的资源（也就是数据）是否被其它线程修改。&lt;/p>
+&lt;h2 id="go-mutex">Go Mutex
+&lt;/h2>&lt;p>Go sync 包提供了两种锁类型：互斥锁 &lt;code>sync.Mutex&lt;/code> 、读写互斥锁 &lt;code>sync.RWMutex&lt;/code>。二者都属于悲观锁&lt;/p>
+&lt;h3 id="底层数据结构">底层数据结构
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">Mutex&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">state&lt;/span> &lt;span class="kt">int32&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">sema&lt;/span> &lt;span class="kt">uint32&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>
+&lt;p>state 表示互斥锁的状态&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>低 1 bit 是mutexLocked，表示互斥锁是否已经被加锁&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>低 2 bit 是 mutexWoken，表示互斥锁是否有被唤醒的 Goroutine&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>低 3 bit 是 mutexStarving，表示互斥锁是否处于饥饿状态&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>剩下 29 bit 表示在这个互斥锁上等待队列的 Goroutine 数量&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>sema 表示信号量，mutex 阻塞队列的定位是通过这个变量来实现的，从而实现 goroutine 的阻塞和唤醒。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="加锁">加锁
+&lt;/h3>&lt;ol>
+&lt;li>首先尝试使用原子操作快速获取锁，如果锁处于初始状态（未被锁定且无等待队列），则直接获取锁并返回，这是快速路径。&lt;/li>
+&lt;li>如果快速获取失败，则进入慢路径。在慢路径中，会判断锁是否已被锁定且可自旋。如果是，则尝试设置唤醒标志并进行自旋等待，即执行空循环一段时间，期望锁能够快速释放。&lt;/li>
+&lt;li>如果自旋等待后仍未获取锁，或者锁不满足自旋条件，则将当前 Goroutine 加入等待队列。根据锁的当前状态（正常模式或饥饿模式），设置相应的队列信息。&lt;/li>
+&lt;li>如果锁处于饥饿模式，当前 Goroutine 会直接阻塞，直到被唤醒并获取锁。如果处于正常模式，被唤醒的 Goroutine 需要与新到达的 Goroutine 竞争锁。&lt;/li>
+&lt;/ol>
+&lt;h3 id="解锁">解锁
+&lt;/h3>&lt;ol>
+&lt;li>解锁时，首先使用原子操作更新锁的状态，将锁标记为未锁定，并根据需要更新等待队列信息。&lt;/li>
+&lt;li>如果有等待的 Goroutine，并且满足饥饿模式切换条件（如等待队列中只有一个等待者或等待时间较短），则将锁切换到正常模式。&lt;/li>
+&lt;li>唤醒等待队列中的一个 Goroutine，使其有机会获取锁。&lt;/li>
+&lt;/ol>
+&lt;h3 id="自旋和阻塞">自旋和阻塞
+&lt;/h3>&lt;p>Goroutine 在没有获取到锁时有以下两种处理方式：&lt;/p>
+&lt;ul>
+&lt;li>一种是没有获取到锁的线程就&lt;strong>一直循环等待判断该资源是否已经释放锁，这种锁也叫做自旋锁&lt;/strong>，它不用将线程阻塞起来， 适用于并发低且程序执行时间短的场景，缺点是cpu占用较高&lt;/li>
+&lt;li>另外一种处理方式就是&lt;strong>把自己阻塞起来，会释放CPU给其他线程，内核会将线程置为睡眠状态&lt;/strong>，等到锁被释放后，内核会在合适的时机唤醒该线程，适用于高并发场景，缺点是有线程上下文切换的开销&lt;/li>
+&lt;/ul>
+&lt;p>而进入自选态需要满足以下条件：&lt;/p>
+&lt;ul>
+&lt;li>锁已被占用，并且锁不处于饥饿模式。&lt;/li>
+&lt;li>积累的自旋次数小于最大自旋次数（active_spin=4）。&lt;/li>
+&lt;li>cpu 核数大于 1。&lt;/li>
+&lt;li>有空闲的 P。&lt;/li>
+&lt;li>当前 goroutine 所挂载的 P 下，本地待运行队列为空。&lt;/li>
+&lt;/ul>
+&lt;h3 id="小结">小结
+&lt;/h3>&lt;ul>
+&lt;li>在 Lock() 之前使用 Unlock() 会导致 panic 异常&lt;/li>
+&lt;li>使用 Lock() 加锁后，再次 Lock() 会导致死锁（不支持重入），需Unlock()解锁后才能再加锁&lt;/li>
+&lt;li>锁定状态与 goroutine 没有关联，一个 goroutine 可以 Lock，另一个 goroutine 可以 &lt;strong>Unlock&lt;/strong>&lt;/li>
+&lt;/ul>
+&lt;h2 id="goroutine-抢锁模式">Goroutine 抢锁模式
+&lt;/h2>&lt;h3 id="正常模式非公平锁">正常模式（非公平锁）
+&lt;/h3>&lt;p>在刚开始的时候，是处于正常模式（Barging），也就是，当一个G1持有着一个锁的时候，G2会自旋的去尝试获取这个锁&lt;/p>
+&lt;p>当&lt;strong>自旋超过4次&lt;/strong>还没有能获取到锁的时候，这个G2就会被加入到获取锁的等待队列里面，并阻塞等待唤醒&lt;/p>
+&lt;p>正常模式下，所有等待锁的 goroutine 按照 FIFO(先进先出)顺序等待。唤醒的goroutine 不会直接拥有锁，而是会和新请求锁的 goroutine 竞争锁。新请求锁的 goroutine 具有优势：它正在 CPU 上执行，而且可能有好几个，所以刚刚唤醒的 goroutine 有很大可能在锁竞争中失败，长时间获取不到锁，就会切换到饥饿模式&lt;/p>
+&lt;h3 id="饥饿模式公平锁">饥饿模式（公平锁）
+&lt;/h3>&lt;p>当一个 goroutine 等待锁时间超过 1 毫秒时，它可能会遇到饥饿问题。 在版本1.9中，这种场景下Go Mutex 切换到饥饿模式（handoff），解决饥饿问题。回归正常模式满足两个条件任何一个：&lt;/p>
+&lt;ul>
+&lt;li>Goutine 的执行时间小于 1ms&lt;/li>
+&lt;li>等待队列已经清空&lt;/li>
+&lt;/ul>
+&lt;h3 id="小结-1">小结
+&lt;/h3>&lt;p>对于两种模式，正常模式下的性能是最好的，goroutine 可以连续多次获取锁，饥饿模式解决了取锁公平的问题，但是性能会下降，其实是性能和公平的 一个平衡模式。&lt;/p>
+&lt;h2 id="syncrwmutex">sync.RWMutex
+&lt;/h2>&lt;h3 id="底层数据结构-1">底层数据结构
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">RWMutex&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">w&lt;/span> &lt;span class="nx">Mutex&lt;/span> &lt;span class="c1">// 互斥锁
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">writerSem&lt;/span> &lt;span class="kt">uint32&lt;/span> &lt;span class="c1">// 信号量，用于写等待读
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">readerSem&lt;/span> &lt;span class="kt">uint32&lt;/span> &lt;span class="c1">// 信号量，用于读等待写
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">readerCount&lt;/span> &lt;span class="kt">int32&lt;/span> &lt;span class="c1">// 当前执行读的 goroutine 数量
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">readerWait&lt;/span> &lt;span class="kt">int32&lt;/span> &lt;span class="c1">// 被阻塞的准备读的 goroutine 的数量
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="读锁">读锁
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">rw&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">RWMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">RLock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1">// 加读锁
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">rw&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">RWMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">RUnlock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1">// 释放读锁
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ol>
+&lt;li>先通过原子操作将readerCount加1&lt;/li>
+&lt;li>如果readerCount&amp;gt;=0就直接返回，所以如果只有获取读取锁的操作，那么其成本只有一个原子操作&lt;/li>
+&lt;li>当readerCount&amp;lt;0时，说明当前有写锁，当前协程将借助信号量陷入等待状态，如果获取到信号量则直接退出，没有获取到信号量时的逻辑与互斥锁的逻辑相似&lt;/li>
+&lt;li>读锁解锁时，如果当前没有写锁，则其成本只有一个原子操作并直接退出&lt;/li>
+&lt;li>如果当前有写锁正在等待，则调用rUnlockSlow判断当前是否为最后一个被释放的读锁，如果是则需要
+增加信号量并唤醒写锁&lt;/li>
+&lt;/ol>
+&lt;h3 id="写锁">写锁
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">rw&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">RWMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Lock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1">// 加写锁
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">rw&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">RWMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Unlock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="c1">// 释放写锁
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ol>
+&lt;li>写锁申请时必须先获取互斥锁，因为它复用了互斥锁的功能。接着readerCount减去
+rwmutexMaxReaders阻止后续读操作&lt;/li>
+&lt;li>获取到互斥锁并不一定能直接获取写锁，如果当前已经有其它Goroutine持有互斥锁的读锁，那么当前
+协程会加入全局等待队列并进入休眠状态，当最后一个读锁被释放时，会唤醒该协程&lt;/li>
+&lt;li>解锁时，调用Unlock方法，将readerCount加上rwmutexMaxReader，表示不会阻塞后序的读锁，依次
+唤醒所有等待中的读锁，当所有的读锁唤醒完毕后会释放互斥锁&lt;/li>
+&lt;/ol>
+&lt;h3 id="小结-2">小结
+&lt;/h3>&lt;ul>
+&lt;li>读锁或写锁在 Lock() 之前使用 Unlock() 会导致 panic 异常&lt;/li>
+&lt;li>使用 Lock() 加锁后，再次 Lock() 会导致死锁（不支持重入），需Unlock()解锁后才能再加锁&lt;/li>
+&lt;li>锁定状态与 goroutine 没有关联，一个 goroutine 可以 RLock（Lock），另一个 goroutine 可以 RUnlock（Unlock）&lt;/li>
+&lt;/ul>
+&lt;h2 id="递归锁">递归锁
+&lt;/h2>&lt;p>可重入锁又称为递归锁，是指在&lt;strong>同一个线程在外层方法获取锁的时候，在进入该线程的内层方法时会自动获取锁，不会因为之前已经获取过还没释放再次加锁导致死锁&lt;/strong>。&lt;/p>
+&lt;p>Go 里面的 Mutex 不是可重入的锁。Mutex 的实现中没有记录哪个 goroutine 拥有这把锁，理论上，任何 goroutine 都可以随意地 Unlock 这把锁，所以没办法计算重入条件，并且 Mutex 重复 Lock 会导致死锁。&lt;/p>
+&lt;p>如果要实现递归锁，需要以下两个条件：&lt;/p>
+&lt;ul>
+&lt;li>记住持有锁的线程&lt;/li>
+&lt;li>计算冲入次数&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;span class="lnt">57
+&lt;/span>&lt;span class="lnt">58
+&lt;/span>&lt;span class="lnt">59
+&lt;/span>&lt;span class="lnt">60
+&lt;/span>&lt;span class="lnt">61
+&lt;/span>&lt;span class="lnt">62
+&lt;/span>&lt;span class="lnt">63
+&lt;/span>&lt;span class="lnt">64
+&lt;/span>&lt;span class="lnt">65
+&lt;/span>&lt;span class="lnt">66
+&lt;/span>&lt;span class="lnt">67
+&lt;/span>&lt;span class="lnt">68
+&lt;/span>&lt;span class="lnt">69
+&lt;/span>&lt;span class="lnt">70
+&lt;/span>&lt;span class="lnt">71
+&lt;/span>&lt;span class="lnt">72
+&lt;/span>&lt;span class="lnt">73
+&lt;/span>&lt;span class="lnt">74
+&lt;/span>&lt;span class="lnt">75
+&lt;/span>&lt;span class="lnt">76
+&lt;/span>&lt;span class="lnt">77
+&lt;/span>&lt;span class="lnt">78
+&lt;/span>&lt;span class="lnt">79
+&lt;/span>&lt;span class="lnt">80
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">package&lt;/span> &lt;span class="nx">main&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;bytes&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;fmt&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;runtime&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;strconv&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;sync&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#34;sync/atomic&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">ReentrantLock&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">sync&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mutex&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">recursion&lt;/span> &lt;span class="kt">int32&lt;/span> &lt;span class="c1">// 这个goroutine 重入的次数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">owner&lt;/span> &lt;span class="kt">int64&lt;/span> &lt;span class="c1">// 当前持有锁的goroutine id
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// Get returns the id of the current goroutine.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="nf">GetGoroutineID&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="kt">int64&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">var&lt;/span> &lt;span class="nx">buf&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">64&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="kt">byte&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">var&lt;/span> &lt;span class="nx">s&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">buf&lt;/span>&lt;span class="p">[:&lt;/span>&lt;span class="nx">runtime&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Stack&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">buf&lt;/span>&lt;span class="p">[:],&lt;/span> &lt;span class="kc">false&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">s&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;goroutine &amp;#34;&lt;/span>&lt;span class="p">):]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">s&lt;/span>&lt;span class="p">[:&lt;/span>&lt;span class="nx">bytes&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">IndexByte&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">s&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="sc">&amp;#39; &amp;#39;&lt;/span>&lt;span class="p">)]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">gid&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">_&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">strconv&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">ParseInt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">s&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">gid&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">NewReentrantLock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="nx">sync&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Locker&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">res&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">ReentrantLock&lt;/span>&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">Mutex&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nx">sync&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mutex&lt;/span>&lt;span class="p">{},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">recursion&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">owner&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">res&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// ReentrantMutex 包装一个Mutex,实现可重入
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">ReentrantMutex&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">sync&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mutex&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">owner&lt;/span> &lt;span class="kt">int64&lt;/span> &lt;span class="c1">// 当前持有锁的goroutine id
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">recursion&lt;/span> &lt;span class="kt">int32&lt;/span> &lt;span class="c1">// 这个goroutine 重入的次数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">ReentrantMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Lock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">gid&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nf">GetGoroutineID&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 如果当前持有锁的goroutine就是这次调用的goroutine,说明是重入
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">atomic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">LoadInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">owner&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="nx">gid&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">recursion&lt;/span>&lt;span class="o">++&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Lock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 获得锁的goroutine第一次调用，记录下它的goroutine id,调用次数加1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">atomic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">StoreInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">owner&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">gid&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">recursion&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">m&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">ReentrantMutex&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Unlock&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">gid&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nf">GetGoroutineID&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 非持有锁的goroutine尝试释放锁，错误的使用
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="nx">atomic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">LoadInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">owner&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="nx">gid&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">panic&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Sprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;wrong the owner(%d): %d!&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">owner&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">gid&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 调用次数减1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">recursion&lt;/span>&lt;span class="o">--&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">recursion&lt;/span> &lt;span class="o">!=&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="p">{&lt;/span> &lt;span class="c1">// 如果这个goroutine还没有完全释放，则直接返回
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="k">return&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 此goroutine最后一次调用，需要释放锁
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">atomic&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">StoreInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">owner&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Unlock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">var&lt;/span> &lt;span class="nx">mutex&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">ReentrantMutex&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Lock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Lock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">111&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Unlock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">mutex&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Unlock&lt;/span>&lt;span class="p">()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="go-原子操作">Go 原子操作
+&lt;/h2>&lt;p>Go atomic 包是最轻量级的锁（也称无锁结构），可以在不形成临界区和创建互斥量的情况下完成并发安全的值替换操作，支持 &lt;code>int32/int64/uint32/uint64/uintptr&lt;/code> 的基础操作（增减、交换、载入、存储等）。&lt;/p>
+&lt;h3 id="add-操作">Add 操作
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">AddInt32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delta&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">AddInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delta&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">AddUint32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delta&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">AddUint64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delta&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">AddUintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uintptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delta&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="load-操作">Load 操作
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadInt32&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int32&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int64&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadPointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadUint32&lt;/span>&lt;span class="p">(&lt;/span> &lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint32&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadUint64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">LoadUintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">val&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">//特殊类型:Value类型，常用于配置变更
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Value&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Load&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">x&lt;/span> &lt;span class="kd">interface&lt;/span>&lt;span class="p">{}){}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="cas-操作">CAS 操作
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapInt32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int32&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int64&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapPointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="err">，&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapUint32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint32&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapUint64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint64&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">CompareAndSwapUintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uintptr&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">old&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nx">new&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">swapped&lt;/span> &lt;span class="kt">bool&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="swap-操作">Swap 操作
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapInt32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapPointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapUint32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapUint64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">SwapUintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uintptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">new&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">old&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="store-操作">Store 操作
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StoreInt32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="kt">int32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StoreInt64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="kt">int64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StorePointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StoreUint32&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint32&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="kt">uint32&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StoreUint64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uint64&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="kt">uint64&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">StoreUintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">addr&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">uintptr&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">val&lt;/span> &lt;span class="kt">uintptr&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 特殊类型： Value类型，常用于配置变更
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">func&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">v&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="nx">Value&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nf">Store&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">x&lt;/span> &lt;span class="kd">interface&lt;/span>&lt;span class="p">{})&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="原子操作-vs-锁">原子操作 VS 锁
+&lt;/h2>&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">&lt;/th>
+&lt;th style="text-align: center">原子操作&lt;/th>
+&lt;th style="text-align: center">锁&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">实现原理&lt;/td>
+&lt;td style="text-align: center">底层硬件支持&lt;/td>
+&lt;td style="text-align: center">原子操作 + 信号量&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">范围&lt;/td>
+&lt;td style="text-align: center">单个指令&lt;/td>
+&lt;td style="text-align: center">临界区（多条指令）&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">性能&lt;/td>
+&lt;td style="text-align: center">性能较高&lt;/td>
+&lt;td style="text-align: center">性能较低&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">类别&lt;/td>
+&lt;td style="text-align: center">乐观锁&lt;/td>
+&lt;td style="text-align: center">悲观锁&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table></description></item><item><title>Go八股之Channel</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bchannel/</link><pubDate>Fri, 17 Jan 2025 13:59:42 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8Bchannel/</guid><description>&lt;h2 id="底层实现原理">底层实现原理
 &lt;/h2>&lt;p>Go中 的 channel 是一个队列，遵循先进先出的原则，负责协程之间的通信（Go 语言提倡不要通过共享内存来通信，而要通过通信来实现内存共享，CSP(Communicating Sequential Process)并发模型，就是通过 goroutine 和 channel 来实现的）。&lt;/p>
 &lt;h3 id="底层数据结构">底层数据结构
 &lt;/h3>&lt;p>通过 var 声明或者 make 函数创建的 channel 是一个&lt;strong>存储在函数栈帧上的指针&lt;/strong>，占用8个字节，指向堆上
