@@ -1,4 +1,379 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sat, 18 Jan 2025 16:37:56 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>Go八股之并发编程</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</link><pubDate>Sat, 18 Jan 2025 16:37:56 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</guid><description>&lt;h2 id="线程通信">线程通信
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程 on 踩坑记录</title><link>https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/</link><description>Recent content in 编程 on 踩坑记录</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>Ting</copyright><lastBuildDate>Sun, 19 Jan 2025 17:09:48 +0800</lastBuildDate><atom:link href="https://the-oone.github.io/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml"/><item><title>关于 Go 的一些问题</title><link>https://the-oone.github.io/p/%E5%85%B3%E4%BA%8E-go-%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/</link><pubDate>Sun, 19 Jan 2025 17:09:48 +0800</pubDate><guid>https://the-oone.github.io/p/%E5%85%B3%E4%BA%8E-go-%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/</guid><description>&lt;ol>
+&lt;li>
+&lt;p>什么是 interface？&lt;/p>
+&lt;ul>
+&lt;li>Go 语言中 interface 是一个抽象类型，不涉及具体实现，用于定义一组方法的集合&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>两个 interface 可以比较吗？&lt;/p>
+&lt;ul>
+&lt;li>接口值可以进行比较，基于接口的动态类型和动态值。接口类型不能直接比较。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>string 可变嘛？&lt;/p>
+&lt;ul>
+&lt;li>在 Go 语言中，&lt;code>string&lt;/code> 类型是不可修改的，其本质是字符数组。这意味着一旦你创建了一个字符串，无法直接修改它的内容。如果你想要改变一个字符串的值，你通常需要创建一个新的字符串。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>单引号、双引号、反引号区别&lt;/p>
+&lt;ul>
+&lt;li>单引号，表示字符常量，用于表示 Unicode 字符，实际上是 int32 别名。处理多语言字符串优势大，例如 utf-8 使用 1-4 个字节表示一个字符，因此不能简单使用 byte[] 处理。&lt;/li>
+&lt;li>双引号，表示字符串常量&lt;/li>
+&lt;li>反引号，表示原始字符串字面量。内容不需要转义&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Go 的数据类型有哪些&lt;/p>
+&lt;ul>
+&lt;li>基本数据类型：int，float，string，bool，complex，rune(int32)，byte(uint8)&lt;/li>
+&lt;li>struct，slice，array，map，channel，interface，function，指针&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>什么是 defer 语句？多个 defer 语句如何运行？&lt;/p>
+&lt;ul>
+&lt;li>defer 是 Go 语言的一种延迟调用机制，defer 后面的函数只有在当前函数执行完成之后才会被执行。当 Go 看见 defer 之后，会将其压入栈中，因此多个 defer 是遵循先进后出原则执行。&lt;/li>
+&lt;/ul>
+&lt;ul>
+&lt;li>defer 可以嵌套，依旧遵循先进后出原则，并且 defer 在发生 panic 之后也依然有效。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>介绍一下 init 函数&lt;/p>
+&lt;ul>
+&lt;li>init 函数在包被导入时自动调用，无需显式调用&lt;/li>
+&lt;li>一个包可以定义多个 init 函数，按同个包内按照定义顺序执行，不同包按导入顺序&lt;/li>
+&lt;li>没有返回值和参数，且优于其他函数&lt;/li>
+&lt;li>只能在包级别定义，运行期间只会执行一次&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>string&lt;/code> 和 &lt;code>[]byte&lt;/code> 相互转换会不会发生内存拷贝&lt;/p>
+&lt;ul>
+&lt;li>标准的转换方法是会的，当一个字符转转成一个字节切片时，Go 会创建一个新的字节数组，并将数据复制到这个新数组中&lt;/li>
+&lt;li>强制转换不会，但是不安全&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>switch-case&lt;/code> 语句&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="k">switch&lt;/span> &lt;span class="nx">simpleStatement&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">condition&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="nx">expression1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">expression2&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">statements&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="nx">expression3&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">statements&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">default&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">statements&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>
+&lt;p>&lt;code>switch&lt;/code> 包含两个部分，分号前的是初始化器，分号之后是需要检查的值，可以两个部分都使用，或是使用一个，或者一个都不用&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Go 语言中匹配到一个 case 条件执行完对应的逻辑之后就会跳出这个 switch 语句，如果不想要隐式退出的话可以使用 fallthrough 语句来继续下一个 case 的处理逻辑。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>switch语句不仅可以处理值，还可以处理类型。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">var&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="kd">interface&lt;/span>&lt;span class="p">{}&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">switch&lt;/span> &lt;span class="nx">v&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="p">.(&lt;/span>&lt;span class="kd">type&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;i is an int and its value is&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">v&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">case&lt;/span> &lt;span class="kt">string&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;i is a string and its value is&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">v&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">default&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;Unknown type&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Go 拼接字符串方法&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>使用 &lt;code>+&lt;/code> ：简单方便，性能低&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="s">&amp;#34;hello &amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="o">+=&lt;/span> &lt;span class="s">&amp;#34;world&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">s&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// hello world
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>字符串格式化函数 &lt;code>fmt.Sprintf&lt;/code>：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">s&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Sprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;%s%s&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">s&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">s&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">s&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// hellohello
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>string.Builder&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kd">var&lt;/span> &lt;span class="nx">builder&lt;/span> &lt;span class="nx">strings&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Builder&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">builder&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">WriteString&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;hello &amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">builder&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">WriteString&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;world&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">builder&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">String&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="c1">// hello world
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>bytes.Buffer&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buf&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nb">new&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bytes&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Buffer&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">WriteString&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">WriteString&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;world&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">buf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">String&lt;/span>&lt;span class="p">())&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>strings.join&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">baseSlice&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="p">[]&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;world&amp;#34;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">baseSlice&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// [hello world]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">strings&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Join&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">baseSlice&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="c1">// helloworld
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>切片 + append&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">main&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buf&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nb">make&lt;/span>&lt;span class="p">([]&lt;/span>&lt;span class="kt">byte&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">base&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">buf&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">buf&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">base&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">buf&lt;/span>&lt;span class="p">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>如何实现可变参数&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// name ...Type 声明一个 Type 类型的可变参数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// 这是官方库中 Println 的设计，接收任意个接口
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">type&lt;/span> &lt;span class="nx">any&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kd">interface&lt;/span>&lt;span class="p">{}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">func&lt;/span> &lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">a&lt;/span> &lt;span class="o">...&lt;/span>&lt;span class="nx">any&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">n&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">err&lt;/span> &lt;span class="kt">error&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nf">Fprintln&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">os&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Stdout&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="o">...&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;ul>
+&lt;li>可变参数就是一个占位符，你可以将 1 个或者多个参数赋值给这个占位符，这样不管实际参数的数量是多少，都能交给可变参数来处理&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>uintptr 和 unsafe.Pointer 有那些区别&lt;/p>
+&lt;p>Go 是一门强类型的语言，它对指针的操作非常严格。但是，有时我们需要绕过类型系统，直接操作内存地址，比如调用 C 语言的函数或者实现一些底层的功能。这时，我们就需要用到 golang 的内置包 unsafe 和它提供的两种特殊的类型：uintptr 和 unsafe.Pointer。&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>uintptr 是 golang 的内置类型，它是一个能够存储指针的整数类型。它的底层类型是 int，它的大小和平台相关，通常是 32 位或者 64 位。我们可以把任何类型的指针转换成 uintptr，也可以把 uintptr 转换成任何类型的指针。例如：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">s&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s">&amp;#34;hello&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">p&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">string&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">s&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">u&lt;/span> &lt;span class="kt">uintptr&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">uintptr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Pointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="c1">// 把 *string 类型的指针转换成 uintptr 类型的整数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">q&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">string&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="kt">string&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Pointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">u&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="c1">// 把 uintptr 类型的整数转换成 *string 类型的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 输出 hello
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>unsafe.Pointer 是 golang 的内置类型，它是一种通用的指针类型，可以指向任何类型的值。它的作用是，可以把不同类型的指针相互转换，而不用经过 uintptr 的中间转换。例如：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">s&lt;/span> &lt;span class="kt">string&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="s">&amp;#34;world&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">p&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">string&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="nx">s&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kd">var&lt;/span> &lt;span class="nx">q&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Pointer&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nx">unsafe&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Pointer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 把 *string 类型的指针转换成 unsafe.Pointer 类型的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">r&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="p">)(&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 把 unsafe.Pointer 类型的指针转换成 *int 类型的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">fmt&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nf">Println&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="nx">r&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 输出一个随机的整数，因为字符串的内存布局和整数的不同
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>uintptr 和 unsafe.Pointer 的区别和联系可以总结如下：&lt;/p>
+&lt;ul>
+&lt;li>uintptr 是一种整数类型，unsafe.Pointer 是一种指针类型。&lt;/li>
+&lt;li>uintptr 可以进行算术运算，unsafe.Pointer 不可以进行算术运算。&lt;/li>
+&lt;li>uintptr 不会被 GC 识别和追踪，unsafe.Pointer 会被 GC 识别和追踪。&lt;/li>
+&lt;li>uintptr 和 unsafe.Pointer 可以相互转换，也可以和任何类型的指针相互转换。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>Go 的类型断言&lt;/p>
+&lt;p>类型断言是Go语言中将一个接口类型变量转换为指定具体类型的一种技术手段。它可以检测存储在接口内部的具体类型，从而实现对不同类型数据的灵活处理。&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>基本语法&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="nx">value&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">ok&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">x&lt;/span>&lt;span class="p">.(&lt;/span>&lt;span class="nx">T&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 安全的断言方式
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="nx">value&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">x&lt;/span>&lt;span class="p">.(&lt;/span>&lt;span class="nx">T&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// 这样也可以，但是如果断言失败会引发 panic
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>x 是一个接口类型的变量，T 是希望断言的类型。value 将会是 x 转换为类型 T 后的值，ok 是一个布尔值，当类型断言成功时为 true，失败时为 false 。&lt;/p>
+&lt;blockquote>
+&lt;p>类型断言的必要条件是 x 必须是接口类型，非接口类型的 x 不能做类型断言。&lt;/p>
+&lt;/blockquote>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>type-switch&lt;/code> 结构&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="k">switch&lt;/span> &lt;span class="nx">v&lt;/span> &lt;span class="o">:=&lt;/span> &lt;span class="nx">x&lt;/span>&lt;span class="p">.(&lt;/span>&lt;span class="kd">type&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">case&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 处理int类型
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">case&lt;/span> &lt;span class="kt">string&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 处理string类型
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">default&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1">// 处理其他类型
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ol></description></item><item><title>Go八股之并发编程</title><link>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</link><pubDate>Sat, 18 Jan 2025 16:37:56 +0800</pubDate><guid>https://the-oone.github.io/p/go%E5%85%AB%E8%82%A1%E4%B9%8B%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</guid><description>&lt;h2 id="线程通信">线程通信
 &lt;/h2>&lt;p>进程通信就是指进程之间的信息交换。&lt;/p>
 &lt;h3 id="共享存储">共享存储
 &lt;/h3>&lt;p>多个线程直接访问同一块内存用来通信，使用互斥锁对内存进行保护。这种方法抽象层次低，耦合度高，还有可能导致死锁问题。&lt;/p>
