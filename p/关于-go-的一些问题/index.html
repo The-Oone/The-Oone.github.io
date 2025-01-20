@@ -50,7 +50,7 @@
 </span></span><span class=line><span class=cl>        <span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;Unknown type&#34;</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>    <span class=p>}</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li></ul></li><li><p>Go 拼接字符串方法</p><ul><li><p>使用 <code>+</code> ：简单方便，性能低</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li></ul></li><li><p>Go 拼接字符串方法</p><ul><li><p>使用 <code>+</code> ：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -70,7 +70,7 @@
 </span></span><span class=line><span class=cl>	<span class=nx>s</span> <span class=p>=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nf>Sprintf</span><span class=p>(</span><span class=s>&#34;%s%s&#34;</span><span class=p>,</span> <span class=nx>s</span><span class=p>,</span> <span class=nx>s</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>s</span><span class=p>)</span>  <span class=c1>// hellohello
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li><li><p>string.Builder</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li><li><p>string.Builder：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -82,7 +82,7 @@
 </span></span><span class=line><span class=cl>	<span class=nx>builder</span><span class=p>.</span><span class=nf>WriteString</span><span class=p>(</span><span class=s>&#34;world&#34;</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>builder</span><span class=p>.</span><span class=nf>String</span><span class=p>())</span>  <span class=c1>// hello world
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li><li><p>bytes.Buffer</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li><li><p>bytes.Buffer：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -94,7 +94,7 @@
 </span></span><span class=line><span class=cl>	<span class=nx>buf</span><span class=p>.</span><span class=nf>WriteString</span><span class=p>(</span><span class=s>&#34;world&#34;</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>buf</span><span class=p>.</span><span class=nf>String</span><span class=p>())</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li><li><p>strings.join</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li><li><p>strings.join：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -104,7 +104,7 @@
 </span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>baseSlice</span><span class=p>)</span>  <span class=c1>// [hello world]
 </span></span></span><span class=line><span class=cl><span class=c1></span>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>strings</span><span class=p>.</span><span class=nf>Join</span><span class=p>(</span><span class=nx>baseSlice</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>))</span>  <span class=c1>// helloworld
 </span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li><li><p>切片 + append</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li><li><p>切片 + append：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4
@@ -116,7 +116,7 @@
 </span></span><span class=line><span class=cl>	<span class=nx>buf</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>buf</span><span class=p>,</span> <span class=nx>base</span><span class=o>...</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>	<span class=nx>fmt</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nb>string</span><span class=p>(</span><span class=nx>buf</span><span class=p>))</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
-</span></span></code></pre></td></tr></table></div></div></li></ul></li><li><p>如何实现可变参数</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></span></code></pre></td></tr></table></div></div></li><li><p>性能对比</p><p>使用 <code>go test -bench="." -run=none -benchmem</code> 对上述六种方法进行新跟那个测试</p><p><img src=https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501201950967.png loading=lazy alt=image-20250120195008806></p><p>利用 pprof 进行内存和 CPU 分析</p><p><img src=https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501201956993.png loading=lazy alt=image-20250120195656856></p><p><img src=https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501202000985.png loading=lazy alt=image-20250120200008863></p><p>不难发现，<code>strings.join</code>、<code>string.Builder</code> 的性能比较优越。</p></li></ul></li><li><p>如何实现可变参数</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
 </span><span class=lnt>2
 </span><span class=lnt>3
 </span><span class=lnt>4

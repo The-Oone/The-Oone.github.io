@@ -127,7 +127,7 @@
 &lt;p>Go 拼接字符串方法&lt;/p>
 &lt;ul>
 &lt;li>
-&lt;p>使用 &lt;code>+&lt;/code> ：简单方便，性能低&lt;/p>
+&lt;p>使用 &lt;code>+&lt;/code> ：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -165,7 +165,7 @@
 &lt;/div>
 &lt;/div>&lt;/li>
 &lt;li>
-&lt;p>string.Builder&lt;/p>
+&lt;p>string.Builder：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -186,7 +186,7 @@
 &lt;/div>
 &lt;/div>&lt;/li>
 &lt;li>
-&lt;p>bytes.Buffer&lt;/p>
+&lt;p>bytes.Buffer：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -207,7 +207,7 @@
 &lt;/div>
 &lt;/div>&lt;/li>
 &lt;li>
-&lt;p>strings.join&lt;/p>
+&lt;p>strings.join：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -226,7 +226,7 @@
 &lt;/div>
 &lt;/div>&lt;/li>
 &lt;li>
-&lt;p>切片 + append&lt;/p>
+&lt;p>切片 + append：&lt;/p>
 &lt;div class="highlight">&lt;div class="chroma">
 &lt;table class="lntable">&lt;tr>&lt;td class="lntd">
 &lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
@@ -246,6 +246,24 @@
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
 &lt;/div>
 &lt;/div>&lt;/li>
+&lt;li>
+&lt;p>性能对比&lt;/p>
+&lt;p>使用 &lt;code>go test -bench=&amp;quot;.&amp;quot; -run=none -benchmem&lt;/code> 对上述六种方法进行新跟那个测试&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501201950967.png"
+loading="lazy"
+alt="image-20250120195008806"
+>&lt;/p>
+&lt;p>利用 pprof 进行内存和 CPU 分析&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501201956993.png"
+loading="lazy"
+alt="image-20250120195656856"
+>&lt;/p>
+&lt;p>&lt;img src="https://cdn.jsdelivr.net/gh/The-Oone/blogImg/202501202000985.png"
+loading="lazy"
+alt="image-20250120200008863"
+>&lt;/p>
+&lt;p>不难发现，&lt;code>strings.join&lt;/code>、&lt;code>string.Builder&lt;/code> 的性能比较优越。&lt;/p>
+&lt;/li>
 &lt;/ul>
 &lt;/li>
 &lt;li>
